@@ -15,13 +15,13 @@ import sys
 config = Configuration('wsj')
 
 # Read tagset and tag lexicon from corpus
-wsj_tags, wsj_norm_tags = read_dict('data/wsj-train.txt', 0, 1)
+wsj_tags, wsj_norm_tags = read_dict('data/wsj-train.tab', 0, 1)
 
 # Create a Tagset object from the tags we have read
 WSJ = Tagset(wsj_tags, config)
 
 # Load a file with word classes
-WC = WCLexicon.from_file('brown', 'data/eng-brown320.txt', config)
+WC = WCLexicon.from_file('brown', 'data/en-brown320.txt', config)
 
 text_field  = 0
 tag_field   = 1
