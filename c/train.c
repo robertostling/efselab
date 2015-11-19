@@ -85,7 +85,7 @@ static int train(
     for (iter=0; ; iter++) {
         shuffle(sent_order, n_sents);
 
-        fprintf(stderr, "Iteration %d...\n", iter+1);
+        fprintf(stderr, "Iteration %zd...\n", iter+1);
         size_t n_errs = 0;
         size_t n_total = 0;
         size_t sent;
@@ -170,7 +170,7 @@ static int train(
                 compression, 100.0*tune_error);
         if (tune_error > 1.01 * best_error) {
             free(folded_weights);
-            fprintf(stderr, "Selected %zdx compression: 0x%x features\n",
+            fprintf(stderr, "Selected %zdx compression: 0x%zx features\n",
                     compression/2, weights_len);
             break;
         }
