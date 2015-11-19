@@ -57,6 +57,30 @@ tags using the `cut` tool, and using `-` as the input file to read from stdin):
 
     cut -f 1 data/udt-en-test.tab | ./udt_en tag - udt-en.bin >udt-en-retag.tab
 
+## Python interface
+
+To build a Python module for your tagger, pass the argument
+`build_python=True` to the `Configuration.generate` method (see the bottom
+of `udt_en.py` for an example).
+
+Then run the configuration script, e.g.:
+
+    python3 udt_en.py
+
+After this, the tagger can be used from Python in the following way:
+
+    >>> import udt_en
+    >>> with open('udt-en.bin', 'rb') as f: weights = f.read()
+    ...
+    >>> udt_en.tag(weights, ((b'A',), (b'short',), (b'sentence',), (b'.',)))
+    (b'DET', b'ADJ', b'NOUN', b'PUNCT')
+
+The second argument must be a tuple of tuples of `bytes` objects, representing
+UTF-8 encoded strings.
+
+`weights` is a `bytes` object, containing the contents of a model
+file, i.e. a binary vector of floating-point values.
+
 ## Distributing taggers
 
 Users with access to (possibly restricted) training material will likely want

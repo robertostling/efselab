@@ -41,20 +41,30 @@ class Configuration:
         print('Building tagger...', file=sys.stderr)
 
 
-    def generate(self, run_cc=True):
+    def generate(self, run_cc=True, build_python=False):
         with open(self.name+'.c', 'w') as f:
         #with tempfile.NamedTemporaryFile(mode='w', suffix='.c') as f:
             print('Generating C code to %s...' % f.name, file=sys.stderr)
-            self.c_emit(f)
+            self.c_emit(f, build_python)
             f.flush()
-            if run_cc:
+            if run_cc and not build_python:
                 command = [self.cc] + self.cflags + [
                         '-I', os.path.realpath(os.path.dirname(sys.argv[0])),
                         '-o', self.name, f.name]
                 print(' '.join(command), file=sys.stderr)
                 subprocess.call(command)
+            elif run_cc and build_python:
+                from distutils.core import setup, Extension
+                tagger = Extension(
+                        self.name,
+                        sources = [f.name],
+                        libraries = [],
+                        extra_compile_args = self.cflags,
+                        extra_link_args = [])
+                setup(name = self.name, ext_modules = [tagger],
+                      script_args = ['build_ext', '--inplace'])
 
-    def c_emit(self, f):
+    def c_emit(self, f, build_python):
         def c_include(filename):
             with open(os.path.join('c', filename)) as cf:
                 code = cf.read()
@@ -63,6 +73,8 @@ class Configuration:
         f.write('''
 #define N_TRAIN_FIELDS %d
 #define N_TAG_FIELDS %d
+#define TAGGER_NAME "%s"
+#define PyInit_TAGGER_NAME PyInit_%s
 
 #include <stdint.h>
 
@@ -70,7 +82,7 @@ typedef uint%d_t   partial_hash_t;
 typedef uint%d_t   feat_hash_t;
 typedef uint32_t   label;
 
-''' % (self.n_train_fields, self.n_tag_fields,
+''' % (self.n_train_fields, self.n_tag_fields, self.name, self.name,
        self.partial_hash_bits, self.feat_hash_bits))
 
         c_include('headers.h')
@@ -89,4 +101,6 @@ typedef uint32_t   label;
         c_include('train.c')
         c_include('run.c')
         c_include('main.c')
+        if build_python:
+            c_include('pytagger.c')
 

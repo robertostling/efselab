@@ -118,3 +118,6 @@ config.generate()
 # If we do not want to automatically run the C compiler, change to:
 #config.generate(use_cc=False)
 
+# To generate a Python module rather than a standalone executable, use:
+#config.generate(build_python=True)
+
