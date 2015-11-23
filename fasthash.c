@@ -5,7 +5,7 @@
 static PyObject *py_hash32(PyObject *self, PyObject *args) {
     const char *str;
     Py_ssize_t str_len;
-    uint32_t seed;
+    unsigned long seed;
 
     if (!PyArg_ParseTuple(args, "ks#", &seed, &str, &str_len)) return NULL;
 
@@ -17,7 +17,7 @@ static PyObject *py_hash32(PyObject *self, PyObject *args) {
 static PyObject *py_hash64(PyObject *self, PyObject *args) {
     const char *str;
     Py_ssize_t str_len;
-    uint64_t seed;
+    unsigned PY_LONG_LONG seed;
 
     if (!PyArg_ParseTuple(args, "Ks#", &seed, &str, &str_len)) return NULL;
 
