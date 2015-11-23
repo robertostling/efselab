@@ -53,7 +53,7 @@ class WCLexicon:
     def c_emit(self, f):
         table = self.make_table()
 
-        f.write('static const size_t %s = 0x%x;\n\n' % (
+        f.write('#define %s 0x%x\n\n' % (
             self.c_size, len(table)))
 
         def c_kv(entry):
@@ -65,8 +65,8 @@ class WCLexicon:
                 '    %s%s' % (c_kv(t), '' if i == len(table)-1 else ',')
                 for i,t in enumerate(table))
 
-        f.write('static const hash%d_kv_label %s[%d] = {\n%s\n};\n\n' % (
-            self.config.lexicon_hash_bits, self.c_table, len(table), body))
+        f.write('static const hash%d_kv_label %s[%s] = {\n%s\n};\n\n' % (
+            self.config.lexicon_hash_bits, self.c_table, self.c_size, body))
 
         f.write('''
 static inline label %s_get_wc(uint%d_t key) {

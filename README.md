@@ -38,7 +38,7 @@ construct lexicon hash tables. Simply type:
 
 Then, to build a tagger simply run the corresponding configuration file, e.g.:
 
-    python3 udt_en.py
+    python3 udt_en_config.py
 
 which will build a tagger for the English part of the Universal Dependencies
 Treebank. This produces a binary file, `udt_en`, which contains everything 
@@ -61,11 +61,11 @@ tags using the `cut` tool, and using `-` as the input file to read from stdin):
 
 To build a Python module for your tagger, pass the argument
 `build_python=True` to the `Configuration.generate` method (see the bottom
-of `udt_en.py` for an example).
+of `udt_en_config.py` for an example).
 
 Then run the configuration script, e.g.:
 
-    python3 udt_en.py
+    python3 udt_en_config.py
 
 After this, the tagger can be used from Python in the following way:
 

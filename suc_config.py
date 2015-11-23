@@ -90,5 +90,6 @@ tl = TagLexicon('SUC_lexicon', len(suc_norm_tags), open_tags, config)
 for norm, tags in suc_norm_tags.items():
     tl[norm] = [SUC.tag_idx[tag] for tag in tags]
 
-config.generate()
+#config.generate()
+config.generate(build_python=True)
 

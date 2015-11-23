@@ -35,7 +35,7 @@ class TagLexicon:
         self.table[i] = (key, idx)
 
     def c_emit(self, f):
-        f.write('static const size_t %s = 0x%x;\n\n' % (
+        f.write('#define %s 0x%x\n\n' % (
             self.c_size, len(self.table)))
         for tags,i in sorted(self.value_idx.items(), key=itemgetter(1)):
             f.write('static const label %s_tags_%d[] = { %d, %s };\n' % (
@@ -54,8 +54,8 @@ class TagLexicon:
                 '    %s%s' % (c_kv(t), '' if i == len(self.table)-1 else ',')
                 for i,t in enumerate(self.table))
 
-        f.write('static const hash%d_kv %s[%d] = {\n%s\n};\n\n' % (
-            self.config.lexicon_hash_bits, self.c_table, len(self.table), body))
+        f.write('static const hash%d_kv %s[%s] = {\n%s\n};\n\n' % (
+            self.config.lexicon_hash_bits, self.c_table, self.c_size, body))
 
         f.write('''
 static inline const label *%s_get_tags(uint%d_t key) {

@@ -19,6 +19,8 @@ from tools import read_dict
 # only mandatory one is the name of the model, which will be used for the C
 # file generated.
 config = Configuration('udt_en')
+# For debugging purposes, you may want to disable optimizations:
+#config = Configuration('udt_en', cflags=['-g', '-O0'])
 
 # On 64-bit systems the following might be better, if the dictionaries are
 # large enough to cause many collisions.
@@ -113,11 +115,11 @@ for norm, tags in udt_en_norm_tags.items():
     tl[norm] = [UDT_EN.tag_idx[tag] for tag in tags]
 
 # Generate C code and compile.
-config.generate()
+#config.generate()
 
 # If we do not want to automatically run the C compiler, change to:
 #config.generate(use_cc=False)
 
 # To generate a Python module rather than a standalone executable, use:
-#config.generate(build_python=True)
+config.generate(build_python=True)
 
