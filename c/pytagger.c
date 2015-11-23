@@ -2,7 +2,7 @@
 
 static PyObject *py_tag(PyObject *self, PyObject *args) {
     PyObject *seq;
-    Py_ssize_t buf_len;
+    int buf_len;
     const char *buf;
     if (!PyArg_ParseTuple(args, "y#O", &buf, &buf_len, &seq)) return NULL;
     const real *weights = (real*)buf;
