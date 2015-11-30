@@ -72,11 +72,12 @@ After this, the tagger can be used from Python in the following way:
     >>> import udt_en
     >>> with open('udt-en.bin', 'rb') as f: weights = f.read()
     ...
-    >>> udt_en.tag(weights, ((b'A',), (b'short',), (b'sentence',), (b'.',)))
-    (b'DET', b'ADJ', b'NOUN', b'PUNCT')
+    >>> udt_en.tag(weights, "A short sentence .".split())
+    ('DET', 'ADJ', 'NOUN', 'PUNCT')
 
-The second argument must be a tuple of tuples of `bytes` objects, representing
-UTF-8 encoded strings.
+The second argument can be a tuple or list of either `str` objects, or a
+tuple or list containing the values of the different input fields. Using a
+tuple with a single `str` object is equivalent to using just the `str` object.
 
 `weights` is a `bytes` object, containing the contents of a model
 file, i.e. a binary vector of floating-point values.
@@ -91,7 +92,6 @@ compile the C file for their own platform, and start tagging files.
 
 There are some things to be aware of:
 
- * Error messages are pretty uninformative.
  * Tokens are simply truncated at 4095 bytes, don't feed it very long strings!
  * Currently only UTF-8 input is supported.
 
@@ -105,4 +105,8 @@ This repository includes a few third-party contributions:
    http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
  * Brown clusters from Turian et al.:
    http://metaoptimize.com/projects/wordreprs/
+
+## Credits
+
+Thanks to Emil Stenström for useful feedback.
 

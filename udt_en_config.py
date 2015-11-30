@@ -115,11 +115,11 @@ for norm, tags in udt_en_norm_tags.items():
     tl[norm] = [UDT_EN.tag_idx[tag] for tag in tags]
 
 # Generate C code and compile.
-#config.generate()
+config.generate()
 
 # If we do not want to automatically run the C compiler, change to:
 #config.generate(use_cc=False)
 
 # To generate a Python module rather than a standalone executable, use:
-config.generate(build_python=True)
+#config.generate(build_python=True)
 
