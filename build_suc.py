@@ -3,6 +3,7 @@
 # This depends on data files that require a signed license agreement.
 # http://www.ling.su.se/suc
 
+from options import args
 from configuration import Configuration
 from form import *
 from tagset import Tagset
@@ -90,6 +91,5 @@ tl = TagLexicon('SUC_lexicon', len(suc_norm_tags), open_tags, config)
 for norm, tags in suc_norm_tags.items():
     tl[norm] = [SUC.tag_idx[tag] for tag in tags]
 
-#config.generate()
-config.generate(build_python=True)
+config.generate(build_python=args.python, run_cc=not args.skip_compile)
 

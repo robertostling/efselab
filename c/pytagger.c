@@ -5,6 +5,11 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
     int buf_len;
     const char *buf;
     if (!PyArg_ParseTuple(args, "y#O", &buf, &buf_len, &seq)) return NULL;
+    if (buf_len & (buf_len-1)) {
+        PyErr_SetString(PyExc_ValueError,
+                "Weights vector length must be power of 2");
+        return NULL;
+    }
     int clear_seq = 0;
     if (PyList_Check(seq)) {
         seq = PyList_AsTuple(seq);

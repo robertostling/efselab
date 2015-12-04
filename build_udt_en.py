@@ -7,8 +7,8 @@
 # This could easily be generalized to create taggers for each of the languages
 # in the treebank, but that is left as an exercise to the reader (for now).
 
+from options import args
 from configuration import Configuration
-
 from form import *
 from tagset import Tagset
 from taglexicon import TagLexicon
@@ -114,12 +114,7 @@ tl = TagLexicon('UDT_EN_lexicon', len(udt_en_norm_tags), open_tags, config)
 for norm, tags in udt_en_norm_tags.items():
     tl[norm] = [UDT_EN.tag_idx[tag] for tag in tags]
 
-# Generate C code and compile.
-config.generate()
 
-# If we do not want to automatically run the C compiler, change to:
-#config.generate(use_cc=False)
-
-# To generate a Python module rather than a standalone executable, use:
-#config.generate(build_python=True)
+# Generate C code and (optionally) compile.
+config.generate(build_python=args.python, run_cc=not args.skip_compile)
 
