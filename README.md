@@ -69,7 +69,7 @@ After this, the tagger can be used from Python in the following way:
     >>> import udt_en
     >>> with open('udt-en.bin', 'rb') as f: weights = f.read()
     ...
-    >>> udt_en.tag(weights, "A short sentence .".split())
+    >>> udt_en.tag(weights, ['A', 'short', 'sentence', '.'])
     ('DET', 'ADJ', 'NOUN', 'PUNCT')
 
 The second argument can be a tuple or list of either `str` objects, or a

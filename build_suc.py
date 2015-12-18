@@ -18,6 +18,12 @@ config = Configuration('suc')
 # Read tagset and tag lexicon from corpus
 suc_tags, suc_norm_tags = read_dict('suc-data/suc-train.tab', 0, 1)
 
+with open('suc-data/extra.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        token, tag = line.rstrip('\n').split('\t')
+        suc_norm_tags[token.lower()].add(tag)
+        suc_tags.add(tag)
+
 with open('suc-data/saldo.txt', 'r', encoding='utf-8') as f:
     for line in f:
         token, _, tag, _ = line.rstrip('\n').split('\t')
