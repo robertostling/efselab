@@ -37,7 +37,7 @@ static int tag(
         }
 
         label result[n_items];
-        greedy_search(
+        beam_search(
                 (const uint8_t**)field_buf, field_len, n_fields,
                 n_items, weights, weights_len, 1, result);
 

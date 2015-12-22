@@ -83,7 +83,7 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
     }
 
     label result[seq_len];
-    greedy_search(
+    beam_search(
             (const uint8_t**)field_buf, field_len, N_TAG_FIELDS,
             seq_len, weights, weights_len, 1, result);
 

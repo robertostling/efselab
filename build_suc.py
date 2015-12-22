@@ -13,7 +13,7 @@ from tools import read_dict
 
 import sys
 
-config = Configuration('suc')
+config = Configuration('suc', beam_size=args.beam_size)
 
 # Read tagset and tag lexicon from corpus
 suc_tags, suc_norm_tags = read_dict('suc-data/suc-train.tab', 0, 1)

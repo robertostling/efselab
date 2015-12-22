@@ -3,6 +3,7 @@
 # Brown clusters from Turian et al. are used:
 # http://metaoptimize.com/projects/wordreprs/
 
+from options import args
 from configuration import Configuration
 from form import *
 from tagset import Tagset
@@ -12,7 +13,7 @@ from tools import read_dict
 
 import sys
 
-config = Configuration('wsj')
+config = Configuration('wsj', beam_size=args.beam_size)
 
 # Read tagset and tag lexicon from corpus
 wsj_tags, wsj_norm_tags = read_dict('data/wsj-train.tab', 0, 1)

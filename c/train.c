@@ -144,7 +144,7 @@ static int train(
         if (iter == 0) {
             tune_error_avg = tune_error;
         } else {
-            if (tune_error > 0.975*tune_error_avg) break;
+            if (tune_error > 0.99*tune_error_avg) break;
             tune_error_avg = tune_error_avg*0.5 + tune_error*0.5;
         }
     }

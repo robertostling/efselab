@@ -276,7 +276,8 @@ static void extract_features(
         normalize_idx = pi_hashes_idx.get('hash_0_x_normalize')
 
         f.write('''
-static void greedy_search(
+#if BEAM_SIZE == 1
+static void beam_search(
         const uint8_t **field_buf,
         const size_t *field_len,
         size_t n_fields,
@@ -303,15 +304,19 @@ static void greedy_search(
         if (use_lexicon) {
             size_t j;
             tags = get_tags(hash%d_fmix(invariant_hashes[N_INVARIANTS*i + %d]));
-            for (j=1; j<tags[0]+1; j++) {
-                extract_features(
-                        result, tags[j], i, n_items,
-                        invariant_hashes, feature_hashes);
-                const real score = get_score(
-                        feature_hashes, N_FEATURES, weights, weights_len);
-                if (score > max_score) {
-                    max_score = score;
-                    max_tag = (label)tags[j];
+            if (tags[0] == 1) {
+                max_tag = (label)tags[1];
+            } else {
+                for (j=1; j<tags[0]+1; j++) {
+                    extract_features(
+                            result, tags[j], i, n_items,
+                            invariant_hashes, feature_hashes);
+                    const real score = get_score(
+                            feature_hashes, N_FEATURES, weights, weights_len);
+                    if (score > max_score) {
+                        max_score = score;
+                        max_tag = (label)tags[j];
+                    }
                 }
             }
         } else {''' % (self.config.lexicon_hash_bits, normalize_idx))
@@ -334,6 +339,130 @@ static void greedy_search(
         result[i] = max_tag;
     }
 }
+#endif
+''')
+
+        f.write('''
+#if BEAM_SIZE > 1
+static void beam_search(
+        const uint8_t **field_buf,
+        const size_t *field_len,
+        size_t n_fields,
+        size_t n_items,
+        const real *weights,
+        size_t weights_len,
+        int use_lexicon,
+        label *result)
+{
+    size_t i;
+    feat_hash_t invariant_hashes[N_INVARIANTS*n_items];
+    feat_hash_t feature_hashes[N_FEATURES];
+    real beam_scores[BEAM_SIZE];
+    label new_beams[BEAM_SIZE][n_items];
+    label beams[BEAM_SIZE][n_items];
+    // this is the actual beam size, whereas BEAM_SIZE is the maximum size
+    size_t beam_size = 1;
+    const label *tags;
+    extract_invariant(
+            field_buf, field_len, n_fields, n_items, invariant_hashes);
+
+    beam_scores[0] = (real)0.0;
+
+    for (i=0; i<n_items; i++) {
+        size_t k;
+        real max_score[BEAM_SIZE];
+        label max_tag[BEAM_SIZE];
+        size_t max_beam[BEAM_SIZE];
+        for (k=0; k<BEAM_SIZE; k++) {
+            max_score[k] = -REAL_MAX;
+            max_tag[k] = 0;
+            max_beam[k] = 0;
+        }
+''')
+        # TODO: make a struct above, instead of 3 arrays
+        # TODO: special cases for first and last step of main loop
+
+        if not normalize_idx is None:
+            f.write('''
+        if (use_lexicon) {
+            size_t j;
+            tags = get_tags(hash%d_fmix(invariant_hashes[N_INVARIANTS*i + %d]));
+            /* if (tags[0] == 1) {
+                for (k=0; k<beam_size; k++) {
+                    max_tag[k] = tags[1];
+                    max_beam[k] = 0;
+                    max_score[k] = beam_scores[k];
+                }
+            } else */ {
+                for (j=1; j<tags[0]+1; j++) {
+                    for (k=0; k<beam_size; k++) {
+                        extract_features(
+                                beams[k], tags[j], i, n_items,
+                                invariant_hashes, feature_hashes);
+                        const real score = beam_scores[k] + get_score(
+                                feature_hashes, N_FEATURES,
+                                weights, weights_len);
+                        if (score > max_score[BEAM_SIZE-1]) {
+                            size_t l,m;
+                            for (l=0; score < max_score[l]; l++);
+                            for (m=BEAM_SIZE-1; m>l; m--) {
+                                max_score[m] = max_score[m-1];
+                                max_tag[m] = max_tag[m-1];
+                                max_beam[m] = max_beam[m-1];
+                            }
+                            max_score[l] = score;
+                            max_tag[l] = (label)tags[j];
+                            max_beam[l] = k;
+                        }
+                    }
+                }
+            }
+        } else {''' % (self.config.lexicon_hash_bits, normalize_idx))
+        f.write('''
+            label tag;
+            for (tag=0; tag<N_TAGS; tag++) {
+                for (k=0; k<beam_size; k++) {
+                    extract_features(
+                            beams[k], tag, i, n_items,
+                            invariant_hashes, feature_hashes);
+                    const real score = beam_scores[k] + get_score(
+                            feature_hashes, N_FEATURES, weights, weights_len);
+                    if (score > max_score[BEAM_SIZE-1]) {
+                        size_t l,m;
+                        for (l=0; score < max_score[l]; l++);
+                        for (m=BEAM_SIZE-1; m>l; m--) {
+                            max_score[m] = max_score[m-1];
+                            max_tag[m] = max_tag[m-1];
+                            max_beam[m] = max_beam[m-1];
+                        }
+                        max_score[l] = score;
+                        max_tag[l] = tag;
+                        max_beam[l] = k;
+                    }
+                }
+            }''')
+        if not normalize_idx is None:
+            f.write('\n        }')
+        # TODO: this could probably be made more efficient, since some copying
+        # is redundant.
+        f.write('''
+        for (k=0; k<BEAM_SIZE && max_score[k] != -REAL_MAX; k++) {
+            beams[k][i] = max_tag[k];
+            beam_scores[k] = max_score[k];
+        }
+        beam_size = k;
+        if (i > 0) {
+            for (k=0; k<beam_size; k++)
+                if (max_beam[k] != k)
+                    memcpy(new_beams[k], beams[max_beam[k]], i*sizeof(label));
+            for (k=0; k<beam_size; k++)
+                if (max_beam[k] != k)
+                    memcpy(beams[k], new_beams[k], i*sizeof(label));
+        }
+    }
+    memcpy(result, beams[0], n_items*sizeof(label));
+}
+#endif
 ''')
 
 def abstract(form): return Translation(form, 'abstract')

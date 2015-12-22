@@ -49,7 +49,7 @@ static size_t train_sequence(
         double *average_weights)
 {
     label crap[n_items];
-    greedy_search(field_buf, field_len, n_fields, n_items,
+    beam_search(field_buf, field_len, n_fields, n_items,
                   weights, weights_len, 0, crap);
     if (!memcmp(crap, gold, n_items*sizeof(label))) return 0;
     size_t n_errs = 0;

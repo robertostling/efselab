@@ -10,6 +10,7 @@ class Configuration:
         feat_hash_bits=32,
         lexicon_hash_bits=32,
         n_train_fields=2,
+        beam_size=4,
         n_tag_fields=None,
         use_unicode=True,
         cc='gcc',
@@ -30,6 +31,7 @@ class Configuration:
         self.feature_set        = None
         self.wclexicon          = None
 
+        self.beam_size          = beam_size
         self.partial_hash_bits  = partial_hash_bits
         self.feat_hash_bits     = feat_hash_bits
         self.lexicon_hash_bits  = lexicon_hash_bits
@@ -71,9 +73,10 @@ class Configuration:
                 f.write(code)
 
         f.write('''
-#define N_TRAIN_FIELDS %d
-#define N_TAG_FIELDS %d
-#define TAGGER_NAME "%s"
+#define N_TRAIN_FIELDS  %d
+#define N_TAG_FIELDS    %d
+#define BEAM_SIZE       %d
+#define TAGGER_NAME     "%s"
 #define PyInit_TAGGER_NAME PyInit_%s
 
 #include <stdint.h>
@@ -82,7 +85,8 @@ typedef uint%d_t   partial_hash_t;
 typedef uint%d_t   feat_hash_t;
 typedef uint32_t   label;
 
-''' % (self.n_train_fields, self.n_tag_fields, self.name, self.name,
+''' % (self.n_train_fields, self.n_tag_fields, self.beam_size,
+       self.name, self.name,
        self.partial_hash_bits, self.feat_hash_bits))
 
         c_include('headers.h')

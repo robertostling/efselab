@@ -57,6 +57,14 @@ tags using the `cut` tool, and using `-` as the input file to read from stdin):
 
     cut -f 1 data/udt-en-test.tab | ./udt_en tag - udt-en.bin >udt-en-retag.tab
 
+## Performance-related options
+
+The `--beam-size` argument of the build scripts controls the beam size of the
+decoder, which is the
+most important way to balance accuracy and performance. A beam size of 1 is
+equivalent to a greedy search, which is the fastest option but results in
+significantly higher error rates than the default beam size (4).
+
 ## Python interface
 
 To build a Python module for your tagger, use the `--python` argument with the
