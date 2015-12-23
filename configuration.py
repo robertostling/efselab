@@ -3,18 +3,20 @@ import os, subprocess, tempfile, sys
 import translation
 
 class Configuration:
-    def __init__(
-        self,
-        name,
-        partial_hash_bits=32,
-        feat_hash_bits=32,
-        lexicon_hash_bits=32,
-        n_train_fields=2,
-        beam_size=4,
-        n_tag_fields=None,
-        use_unicode=True,
-        cc='gcc',
-        cflags=['-Wall', '-Wno-unused-function', '-Ofast']):
+    def __init__(self, name, args):
+        if not args.name is None: name = args.name
+        feat_hash_bits = args.feat_hash_bits
+        partial_hash_bits = feat_hash_bits
+        lexicon_hash_bits = partial_hash_bits
+        n_train_fields = args.n_train_fields
+        beam_size = args.beam_size
+        n_tag_fields = None
+        use_unicode = True
+        cc = args.cc
+        cflags = args.cflags.split()
+
+        self.skip_compile = args.skip_compile
+        self.build_python = args.python
 
         # Only these values are (currently) supported
         assert partial_hash_bits in (32, 64)
@@ -42,9 +44,14 @@ class Configuration:
 
         print('Building tagger...', file=sys.stderr)
 
+    def build(self):
+        self.generate(not self.skip_compile, False)
+        if self.build_python:
+            self.generate(not self.skip_compile, True)
 
     def generate(self, run_cc=True, build_python=False):
-        with open(self.name+'.c', 'w') as f:
+        filename = ('py'+self.name if build_python else self.name) + '.c'
+        with open(filename, 'w') as f:
         #with tempfile.NamedTemporaryFile(mode='w', suffix='.c') as f:
             print('Generating C code to %s...' % f.name, file=sys.stderr)
             self.c_emit(f, build_python)

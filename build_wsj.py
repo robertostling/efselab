@@ -13,7 +13,7 @@ from tools import read_dict
 
 import sys
 
-config = Configuration('wsj', beam_size=args.beam_size)
+config = Configuration('wsj', args)
 
 # Read tagset and tag lexicon from corpus
 wsj_tags, wsj_norm_tags = read_dict('data/wsj-train.tab', 0, 1)
@@ -89,5 +89,5 @@ tl = TagLexicon('WSJ_lexicon', len(wsj_norm_tags), open_tags, config)
 for norm, tags in wsj_norm_tags.items():
     tl[norm] = [WSJ.tag_idx[tag] for tag in tags]
 
-config.generate()
+config.build()
 

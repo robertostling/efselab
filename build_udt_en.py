@@ -18,7 +18,7 @@ from tools import read_dict
 # There are plenty of other configuration options (see configuration.py), the
 # only mandatory one is the name of the model, which will be used for the C
 # file generated.
-config = Configuration('udt_en', beam_size=args.beam_size)
+config = Configuration('udt_en', args)
 # For debugging purposes, you may want to disable optimizations:
 #config = Configuration('udt_en', cflags=['-g', '-O0'])
 
@@ -116,5 +116,5 @@ for norm, tags in udt_en_norm_tags.items():
 
 
 # Generate C code and (optionally) compile.
-config.generate(build_python=args.python, run_cc=not args.skip_compile)
+config.build()
 

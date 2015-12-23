@@ -36,9 +36,16 @@ construct lexicon hash tables. Simply type:
 
     make
 
-Then, to build a tagger simply run the corresponding configuration file, e.g.:
+Each tagger specification file (`build_*.py`) also functions as a build
+script. For a complete list of arguments, run e.g.:
+    
+    python3 build_udt_en.py --help
 
-    python3 build_udt_en.py
+Then, to build a tagger simply run the corresponding configuration file, the
+following will build a tagger for the English Universal Dependencies treebank
+with the name `udt_en`, both an executable file and a Python module:
+
+    python3 build_udt_en.py --name udt_en --python
 
 which will build a tagger for the English part of the Universal Dependencies
 Treebank. This produces a binary file, `udt_en`, which contains everything 
@@ -70,7 +77,7 @@ significantly higher error rates than the default beam size (4).
 To build a Python module for your tagger, use the `--python` argument with the
 configuration script:
 
-    python3 build_udt_en.py --python
+    python3 build_udt_en.py --name udt_en --python
 
 After this, the tagger can be used from Python in the following way:
 

@@ -13,7 +13,7 @@ from tools import read_dict
 
 import sys
 
-config = Configuration('suc', beam_size=args.beam_size)
+config = Configuration('suc', args)
 
 # Read tagset and tag lexicon from corpus
 suc_tags, suc_norm_tags = read_dict('suc-data/suc-train.tab', 0, 1)
@@ -97,5 +97,5 @@ tl = TagLexicon('SUC_lexicon', len(suc_norm_tags), open_tags, config)
 for norm, tags in suc_norm_tags.items():
     tl[norm] = [SUC.tag_idx[tag] for tag in tags]
 
-config.generate(build_python=args.python, run_cc=not args.skip_compile)
+config.build()
 
