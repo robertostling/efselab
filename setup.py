@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from distutils.core import setup, Extension
+from Cython.Build import cythonize
 
 fasthash = Extension(
         'fasthash',
@@ -11,5 +12,5 @@ fasthash = Extension(
 
 setup(
         name = 'Fast hashing',
-        ext_modules = [fasthash])
+        ext_modules = cythonize('lemmatize.pyx') + [fasthash])
 
