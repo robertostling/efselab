@@ -19,8 +19,6 @@ import pickle
 from datetime import datetime
 import zlib, base64
 
-import suc
-
 ABBREVS = pickle.loads(zlib.decompress(base64.b64decode("""
 eJxdlDtv6zAMhXf9kkyC5bfWoujSoUMDrYJbx22Rh43YCG7+eOd7DiU5vhcoAousyI+HpHb9ZNTO
 PZ10p5xWy5QrOWg1FWreuYFWdwm+UrlBX+Cq6Doo18NYK3fwvZoa2hblbrC1yi3+piZL25tyczCb
@@ -168,7 +166,10 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
             s_id += 1
             t_id = 1
             continue
-        token, tag = line.split("\t")
+        fields = line.split('\t')
+        token = fields[0]
+        tag = fields[1]
+        lemma = '_' if len(fields) < 3 else fields[2]
         if "|" in tag:
             pos, morph = tag.split("|", 1)
         else:
@@ -177,7 +178,7 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
         print("%s\t%s\t%s\t%s\t%s\t%s" % (
             "%d" % t_id,
             token,
-            "_",
+            lemma,
             pos,
             pos,
             morph), file=tagged_conll)
@@ -196,6 +197,7 @@ if __name__ == '__main__':
     # Set some sensible defaults
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
     TAGGING_MODEL = os.path.join(SCRIPT_DIR, "suc.bin")
+    LEMMATIZATION_MODEL = "suc-saldo.lemmas"
     PARSING_MODEL = "swemalt-1.7.2"
     MALT = os.path.join(SCRIPT_DIR, "maltparser-1.7.2")
 
@@ -208,6 +210,8 @@ if __name__ == '__main__':
                   help="Generate tokenized output file(s) (*.tok)")
     op.add_option("--tagged", dest="tagged", action="store_true",
                   help="Generate tagged output file(s) (*.tag)")
+    op.add_option("--lemmatized", dest="lemmatized", action="store_true",
+                  help="Also lemmatize the tagged output file(s) (*.tag)")
     op.add_option("--parsed", dest="parsed", action="store_true",
                   help="Generate parsed output file(s) (*.conll)")
     op.add_option("--all", dest="all", action="store_true",
@@ -215,6 +219,9 @@ if __name__ == '__main__':
     op.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
+    op.add_option("-l", "--lemmatization-model", dest="lemmatization_model",
+                  default=LEMMATIZATION_MODEL, metavar="MODEL",
+                  help="MaltParser model file for parsing")
     op.add_option("-p", "--parsing-model", dest="parsing_model",
                   default=PARSING_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
@@ -245,13 +252,20 @@ if __name__ == '__main__':
     # Make sure we have all we need
     if options.tagged and not os.path.exists(options.tagging_model):
         sys.exit("Can't find tagging model: %s" % options.tagging_model)
+    if options.lemmatized and not options.tagged:
+        sys.exit("Can't lemmatize without tagging.")
+    if options.lemmatized and not os.path.exists(options.lemmatization_model):
+        sys.exit("Can't find lemmatizer model file %s." %
+                 options.lemmatization_model)
     if options.parsed and not os.path.exists(jarfile):
         sys.exit("Can't find MaltParser jar file %s." % jarfile)
     if options.parsed and not os.path.exists(options.parsing_model+".mco"):
         sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
 
-    with open(options.tagging_model, 'rb') as f:
-        tagger_weights = f.read()
+    if options.tagged or options.parsed:
+        import suc
+        with open(options.tagging_model, 'rb') as f:
+            tagger_weights = f.read()
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -259,6 +273,11 @@ if __name__ == '__main__':
         shutil.copy(os.path.join(SCRIPT_DIR, options.parsing_model+".mco"),
                     tmp_dir)
 
+    lemmatizer = None
+    if options.lemmatized:
+        import lemmatize
+        lemmatizer = lemmatize.SUCLemmatizer()
+        lemmatizer.load(options.lemmatization_model)
 
     # Process each input file
     for filename in args:
@@ -296,8 +315,8 @@ if __name__ == '__main__':
         data = codecs.open(filename, "r", "utf-8").read()
 
 
-        ##########################
-        # Tokenization and tagging
+        #########################################
+        # Tokenization, tagging and lemmatization
 
         # Basic tokenization
         tokens = tokenize(data.strip())
@@ -323,8 +342,13 @@ if __name__ == '__main__':
             print(file=tokenized)
             if tagged:
                 tags = suc.tag(tagger_weights, sentence)
-                for token, tag in zip(sentence, tags):
-                    print(token + '\t' + tag, file=tagged)
+                if lemmatizer:
+                    for token, tag in zip(sentence, tags):
+                        lemma = lemmatizer.predict(token, tag)
+                        print(token + '\t' + tag + '\t' + lemma, file=tagged)
+                else:
+                    for token, tag in zip(sentence, tags):
+                        print(token + '\t' + tag, file=tagged)
                 print(file=tagged)
 
         if tokenized: tokenized.close()

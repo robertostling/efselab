@@ -46,14 +46,14 @@ cdef str capitalize(str lemma, str form, str tag):
     return lemma.lower()
 
 
-cdef class Lemmatizer:
+cdef class SUCLemmatizer:
     cdef dict lexicon
 
     def __init__(self):
         self.lexicon = {}
 
 
-    cdef str predict(self, str form, str tag):
+    cpdef str predict(self, str form, str tag):
         cdef str lemma, suffix, form_lower
         cdef tuple form_tag
         cdef int i
@@ -61,16 +61,17 @@ cdef class Lemmatizer:
         form_lower = form.lower()
         form_tag = (form_lower, tag)
         lemma = self.lexicon.get(form_tag)
-        if not lemma is None: return capitalize(lemma, form, tag)
+        if not lemma is None:
+            return capitalize(lemma, form, tag).replace(' ', '_')
         if tag == 'PM|GEN' and form_lower.endswith('s'):
-            return capitalize(form[:-1], form, tag)
+            return capitalize(form[:-1], form, tag).replace(' ', '_')
         for i in range(1, len(form)-2):
             suffix = form[i:]
             form_tag = (suffix, tag)
             lemma = self.lexicon.get(form_tag)
             if not lemma is None:
-                return capitalize(form[:i] + lemma, form, tag)
-        return capitalize(form, form, tag)
+                return capitalize(form[:i] + lemma, form, tag).replace(' ', '_')
+        return capitalize(form, form, tag).replace(' ', '_')
 
 
     cpdef float evaluate(self, str filename):
@@ -109,6 +110,12 @@ cdef class Lemmatizer:
 
 
 cpdef train(list conll_files, list lexicon_files):
+    """Return a trained SUCLemmatizer object
+
+    conll_files -- list of filenames containing SUC-format CoNLL files
+    lexicon_files -- list of filenames containing tag dictionaries (mostly
+                     extracted from SALDO, taken from the old Stagger data
+    """
     cdef str filename, line, form, lemma, tag, form_lower
     cdef tuple form_tag
     cdef TabReader r
@@ -154,7 +161,7 @@ cpdef train(list conll_files, list lexicon_files):
                 form_tag = (form_lower, tag)
                 lemma_count[form_tag][lemma] += 1
 
-    l = Lemmatizer()
+    l = SUCLemmatizer()
     l.lexicon = { form_tag: counts.most_common(1)[0][0]
                   for form_tag, counts in lemma_count.items() }
 
