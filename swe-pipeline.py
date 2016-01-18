@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Tokenize, tag and parse Swedish plain text data.
 
 This was originally the pipeline by Filip Salomonsson for the Swedish
@@ -196,10 +196,11 @@ if __name__ == '__main__':
 
     # Set some sensible defaults
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-    TAGGING_MODEL = os.path.join(SCRIPT_DIR, "suc.bin")
-    LEMMATIZATION_MODEL = "suc-saldo.lemmas"
-    PARSING_MODEL = "swemalt-1.7.2"
-    MALT = os.path.join(SCRIPT_DIR, "maltparser-1.7.2")
+    MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
+    TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
+    LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
+    PARSING_MODEL = os.path.join(MODEL_DIR, "swemalt-1.7.2")
+    MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
@@ -215,7 +216,7 @@ if __name__ == '__main__':
     op.add_option("--parsed", dest="parsed", action="store_true",
                   help="Generate parsed output file(s) (*.conll)")
     op.add_option("--all", dest="all", action="store_true",
-                  help="Equivalent to --tokenized --tagged --parsed")
+                  help="Equivalent to --tokenized --tagged --lemmatized --parsed")
     op.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
@@ -225,8 +226,8 @@ if __name__ == '__main__':
     op.add_option("-p", "--parsing-model", dest="parsing_model",
                   default=PARSING_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
-    op.add_option("--malt", dest="malt", default=MALT, metavar="DIR",
-                  help="Path to the MaltParser directory")
+    op.add_option("--malt", dest="malt", default=MALT, metavar="JAR",
+                  help=".jar file of MaltParser")
     op.add_option("--no-delete", dest="no_delete", action="store_true",
                   help="Don't delete temporary working directory.")
 
@@ -234,10 +235,11 @@ if __name__ == '__main__':
     if options.all:
         options.tokenized = True
         options.tagged = True
+        options.lemmatized = True
         options.parsed = True
 
     if not (options.tokenized or options.tagged or options.parsed):
-        op.error("Nothing to do! Please use --tokenized, --tagged and/or --parsed (or --all)")
+        op.error("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
 
     # If no target directory was given: write error message and exit.
     if not options.output_dir:
@@ -247,7 +249,7 @@ if __name__ == '__main__':
         op.error("Please specify at least one filename as input.")
 
     # Set up (part of) command lines
-    jarfile = os.path.join(os.path.expanduser(options.malt), "maltparser-1.7.2.jar")
+    jarfile = os.path.expanduser(options.malt)
 
     # Make sure we have all we need
     if options.tagged and not os.path.exists(options.tagging_model):

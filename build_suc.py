@@ -15,6 +15,10 @@ import sys
 
 config = Configuration('suc', args)
 
+if config.skip_generate:
+    config.build()
+    sys.exit(0)
+
 # Read tagset and tag lexicon from corpus
 suc_tags, suc_norm_tags = read_dict('suc-data/suc-train.tab', 0, 1)
 

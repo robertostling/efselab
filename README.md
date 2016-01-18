@@ -26,6 +26,7 @@ installed:
 
  * Python 3 (tested with version 3.4) and setuptools
  * gcc (tested with version 4.9) and GNU Make
+ * Cython (only needed if you want to use the Swedish lemmatizer)
 
 There is no installation as such, all the software is (somewhat inelegantly)
 contained in the root directory, where configuration files are also assumed to
@@ -63,6 +64,34 @@ untagged file, this can also be done (in this example by stripping off the
 tags using the `cut` tool, and using `-` as the input file to read from stdin):
 
     cut -f 1 data/udt-en-test.tab | ./udt_en tag - udt-en.bin >udt-en-retag.tab
+
+## Swedish annotation pipeline
+
+There is a Swedish annotation pipeline, adapted from the Swedish Treebank
+pipeline (originally using hunpos for POS tagging) created at
+Uppsala University by Filip Salomonsson. It can do the following:
+ 
+ * Tokenization (using a Python tokenizer by Filip Salomonsson)
+ * POS tagging (using `efselab` with a SUC model)
+ * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
+ * Dependency prasing (using MaltParser by Joakim Nivre et al.)
+
+To start using the pipeline, the easiest way is to download and unpack the
+following
+[swe-pipeline data package](http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz)
+into the `efselab` directory, and compile the SUC tagger Python module:
+
+    tar xvzf swe-pipeline.tar.gz
+    python3 build_suc.py --skip-generate --python
+
+Then you should be able to run the pipeline like this:
+
+    mkdir output
+    ./swe-pipeline.py -o output --all file.txt
+
+For a more detailed description of the command-line options, run:
+
+    ./swe-pipeline.py --help
 
 ## Performance-related options
 

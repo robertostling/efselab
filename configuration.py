@@ -16,6 +16,7 @@ class Configuration:
         cflags = args.cflags.split()
 
         self.skip_compile = args.skip_compile
+        self.skip_generate = args.skip_generate
         self.build_python = args.python
 
         # Only these values are (currently) supported
@@ -45,33 +46,34 @@ class Configuration:
         print('Building tagger...', file=sys.stderr)
 
     def build(self):
-        self.generate(not self.skip_compile, False)
+        if not self.skip_generate:
+            self.generate(not self.skip_compile, False)
         if self.build_python:
-            self.generate(not self.skip_compile, True)
+            self.generate(not self.skip_compile, True, not self.skip_generate)
 
-    def generate(self, run_cc=True, build_python=False):
+    def generate(self, run_cc=True, build_python=False, generate_c=True):
         filename = ('py'+self.name if build_python else self.name) + '.c'
-        with open(filename, 'w') as f:
-        #with tempfile.NamedTemporaryFile(mode='w', suffix='.c') as f:
-            print('Generating C code to %s...' % f.name, file=sys.stderr)
-            self.c_emit(f, build_python)
-            f.flush()
-            if run_cc and not build_python:
-                command = [self.cc] + self.cflags + [
-                        '-I', os.path.realpath(os.path.dirname(sys.argv[0])),
-                        '-o', self.name, f.name]
-                print(' '.join(command), file=sys.stderr)
-                subprocess.call(command)
-            elif run_cc and build_python:
-                from distutils.core import setup, Extension
-                tagger = Extension(
-                        self.name,
-                        sources = [f.name],
-                        libraries = [],
-                        extra_compile_args = self.cflags,
-                        extra_link_args = [])
-                setup(name = self.name, ext_modules = [tagger],
-                      script_args = ['build_ext', '--inplace'])
+        if generate_c:
+            with open(filename, 'w') as f:
+                print('Generating C code to %s...' % f.name, file=sys.stderr)
+                self.c_emit(f, build_python)
+                f.flush()
+        if run_cc and not build_python:
+            command = [self.cc] + self.cflags + [
+                    '-I', os.path.realpath(os.path.dirname(sys.argv[0])),
+                    '-o', self.name, filename]
+            print(' '.join(command), file=sys.stderr)
+            subprocess.call(command)
+        elif run_cc and build_python:
+            from distutils.core import setup, Extension
+            tagger = Extension(
+                    self.name,
+                    sources = [filename],
+                    libraries = [],
+                    extra_compile_args = self.cflags,
+                    extra_link_args = [])
+            setup(name = self.name, ext_modules = [tagger],
+                  script_args = ['build_ext', '--inplace'])
 
     def c_emit(self, f, build_python):
         def c_include(filename):

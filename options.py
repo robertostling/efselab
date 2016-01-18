@@ -18,6 +18,8 @@ parser.add_argument('--beam-size', dest='beam_size', type=int, default=4,
 parser.add_argument('--hash-bits', dest='feat_hash_bits',
     type=int, default=32,
     help='number of bits for hashes (default: 32)')
+parser.add_argument('--skip-generate', action='store_true',
+    help='compile Python module but do not generate C code (assumed to exist)')
 parser.add_argument('--skip-compile', action='store_true',
     help='generate C code but do not compile it')
 args = parser.parse_args()
