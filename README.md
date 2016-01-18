@@ -77,12 +77,12 @@ Uppsala University by Filip Salomonsson. It can do the following:
  * Dependency prasing (using MaltParser by Joakim Nivre et al.)
 
 To start using the pipeline, the easiest way is to download and unpack the
-following
 [swe-pipeline data package](http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz)
 into the `efselab` directory, and compile the SUC tagger Python module.
 Remember to first run `make` to compile the lemmatizer:
 
     make
+    wget http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz
     tar xvzf swe-pipeline.tar.gz
     python3 build_suc.py --skip-generate --python
 
