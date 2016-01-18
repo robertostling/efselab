@@ -154,3 +154,6 @@ This repository includes a few third-party contributions:
 Thanks to [Emil Stenström](https://github.com/EmilStenstrom) for testing and
 feedback.
 
+The Swedish pipeline wrapper script (including the tokenizer) was originally
+written by Filip Salomonsson.
+
