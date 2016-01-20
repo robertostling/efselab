@@ -2,6 +2,7 @@
 #define __TRAIN_C__
 
 #include <stdlib.h>
+#include <errno.h>
 
 static void shuffle(size_t *items, size_t len) {
     size_t i;
@@ -20,6 +21,16 @@ static int train(
 {
     FILE *train_file = fopen(train_filename, "rb");
     FILE *tune_file = fopen(tune_filename, "rb");
+
+    if (train_file == NULL) {
+        perror("unable to open training data file");
+        exit(1);
+    }
+
+    if (tune_file == NULL) {
+        perror("unable to open tuning data file");
+        exit(1);
+    }
 
     size_t i;
 
@@ -82,6 +93,7 @@ static int train(
 
     fprintf(stderr, "Training data contains %zd sentences\n", n_sents);
 
+    double tune_error = 1.0;
     for (iter=0; ; iter++) {
         shuffle(sent_order, n_sents);
 
@@ -129,7 +141,7 @@ static int train(
             average_weights[i*2+1] = t;
         }
 
-        double tune_error = 1.0;
+        tune_error = 1.0;
 
         real *real_average_weights = malloc(sizeof(real)*weights_len);
         for (i=0; i<weights_len; i++)
@@ -158,6 +170,8 @@ static int train(
 
     fprintf(stderr, "Finding optimal feature compression...\n");
 
+    if (tune_error > best_error) best_error = tune_error;
+
     size_t compression;
     for (compression=2; ; compression*=2) {
         real *folded_weights = malloc(sizeof(real)*weights_len/2);
@@ -183,6 +197,10 @@ static int train(
     fclose(tune_file);
 
     FILE *model = fopen(model_filename, "wb");
+    if (model == NULL) {
+        perror("unable to open model file for writing");
+        exit(1);
+    }
     fwrite(weights, sizeof(real), weights_len, model);
     fclose(model);
 

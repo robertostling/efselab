@@ -42,9 +42,20 @@ static int tag(
                 n_items, weights, weights_len, 1, result);
 
         if (outfile != NULL) {
-            for (i=0; i<n_items; i++)
-                fprintf(outfile, "%s\t%s\n",
-                        field_buf[i*n_fields], tag_str[result[i]]);
+            for (i=0; i<n_items; i++) {
+                size_t j;
+                for (j=0; j<N_TRAIN_FIELDS; j++) {
+                    if (j == COL_TAG)
+                        fputs((char*)tag_str[result[i]], outfile);
+                    else if (j < COL_TAG)
+                        fputs((char*)field_buf[i*n_fields+j], outfile);
+                    else
+                        fputs((char*)field_buf[i*n_fields+j-1], outfile);
+                    if (j < N_TRAIN_FIELDS-1)
+                        fputc('\t', outfile);
+                }
+                fputc('\n', outfile);
+            }
             fputc('\n', outfile);
         }
 
