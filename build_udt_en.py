@@ -110,7 +110,7 @@ open_tags = sorted(
 # above.
 # NOTE: although items are added one by one below, we must give the number of
 # items in the constructor: len(udt_en_norm_tags)
-tl = TagLexicon('UDT_EN_lexicon', len(udt_en_norm_tags), open_tags, config)
+tl = TagLexicon('UDT_EN_lexicon', text_field, len(udt_en_norm_tags), open_tags, config)
 for norm, tags in udt_en_norm_tags.items():
     tl[norm] = [UDT_EN.tag_idx[tag] for tag in tags]
 

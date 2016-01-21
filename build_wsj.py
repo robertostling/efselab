@@ -85,7 +85,7 @@ open_tags = sorted(
 
 # Create a TagLexicon object from the tag lexicon we loaded with read_dict()
 # above.
-tl = TagLexicon('WSJ_lexicon', len(wsj_norm_tags), open_tags, config)
+tl = TagLexicon('WSJ_lexicon', text_field, len(wsj_norm_tags), open_tags, config)
 for norm, tags in wsj_norm_tags.items():
     tl[norm] = [WSJ.tag_idx[tag] for tag in tags]
 

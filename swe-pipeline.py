@@ -169,7 +169,8 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
         fields = line.split('\t')
         token = fields[0]
         tag = fields[1]
-        lemma = '_' if len(fields) < 3 else fields[2]
+        ud_tag = tag if len(fields) < 4 else fields[2]
+        lemma = '_' if len(fields) < 4 else fields[3]
         if "|" in tag:
             pos, morph = tag.split("|", 1)
         else:
@@ -179,7 +180,7 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
             "%d" % t_id,
             token,
             lemma,
-            pos,
+            ud_tag,
             pos,
             morph), file=tagged_conll)
         t_id += 1
@@ -198,6 +199,7 @@ if __name__ == '__main__':
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
     MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
     TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
+    UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
     LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
     PARSING_MODEL = os.path.join(MODEL_DIR, "swemalt-1.7.2")
     MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
@@ -207,6 +209,8 @@ if __name__ == '__main__':
     op = OptionParser(usage=usage)
     op.add_option("-o", "--output-dir", dest="output_dir", metavar="DIR",
                   help="set target directory for output (Required.)")
+    op.add_option("--skip-tokenization", dest="skip_tokenization",
+                  action="store_true", help="Assume tokenized input")
     op.add_option("--tokenized", dest="tokenized", action="store_true",
                   help="Generate tokenized output file(s) (*.tok)")
     op.add_option("--tagged", dest="tagged", action="store_true",
@@ -220,6 +224,9 @@ if __name__ == '__main__':
     op.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
+    op.add_option("-u", "--ud-tagging-model", dest="ud_tagging_model",
+                  default=UD_TAGGING_MODEL, metavar="FILENAME",
+                  help="Model for PoS tagging (UD wrapper)")
     op.add_option("-l", "--lemmatization-model", dest="lemmatization_model",
                   default=LEMMATIZATION_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
@@ -268,6 +275,10 @@ if __name__ == '__main__':
         import suc
         with open(options.tagging_model, 'rb') as f:
             tagger_weights = f.read()
+        if options.lemmatized:
+            import udt_suc_sv
+            with open(options.ud_tagging_model, 'rb') as f:
+                ud_tagger_weights = f.read()
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -320,14 +331,19 @@ if __name__ == '__main__':
         #########################################
         # Tokenization, tagging and lemmatization
 
-        # Basic tokenization
-        tokens = tokenize(data.strip())
+        if options.skip_tokenization:
+            sentences = [
+                    sentence.split('\n')
+                    for sentence in data.split('\n\n')]
+        else:
+            # Basic tokenization
+            tokens = tokenize(data.strip())
 
-        # Handle sentences and abbreviations
-        marked = join_abbrevs(ABBREVS, tokens)
+            # Handle sentences and abbreviations
+            marked = join_abbrevs(ABBREVS, tokens)
 
-        # Chop it into sentences based on the markers that are left
-        sentences = group_sentences(marked)
+            # Chop it into sentences based on the markers that are left
+            sentences = group_sentences(marked)
 
         # Write tokenized data to output dir, optionally tag as well
         tokenized = None
@@ -345,9 +361,14 @@ if __name__ == '__main__':
             if tagged:
                 tags = suc.tag(tagger_weights, sentence)
                 if lemmatizer:
-                    for token, tag in zip(sentence, tags):
-                        lemma = lemmatizer.predict(token, tag)
-                        print(token + '\t' + tag + '\t' + lemma, file=tagged)
+                    lemmas = [lemmatizer.predict(token, tag)
+                              for token, tag in zip(sentence, tags)]
+                    suc_sentence = [
+                            (lemma, tag[:2], tag)
+                            for lemma, tag in zip(lemmas, tags)]
+                    ud_tags = udt_suc_sv.tag(ud_tagger_weights, suc_sentence)
+                    for row in zip(sentence, tags, ud_tags, lemmas):
+                        print('\t'.join(row), file=tagged)
                 else:
                     for token, tag in zip(sentence, tags):
                         print(token + '\t' + tag, file=tagged)
@@ -355,10 +376,10 @@ if __name__ == '__main__':
 
         if tokenized: tokenized.close()
         if tagged: tagged.close()
-    
+
         if options.tokenized:
             shutil.copy(tokenized_filename, options.output_dir)
-    
+
         if options.tagged:
             shutil.copy(tagged_filename, options.output_dir)
 

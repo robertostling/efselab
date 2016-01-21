@@ -97,7 +97,7 @@ open_tags = sorted(
 
 # Create a TagLexicon object from the tag lexicon we loaded with read_dict()
 # above.
-tl = TagLexicon('SUC_lexicon', len(suc_norm_tags), open_tags, config)
+tl = TagLexicon('SUC_lexicon', text_field, len(suc_norm_tags), open_tags, config)
 for norm, tags in suc_norm_tags.items():
     tl[norm] = [SUC.tag_idx[tag] for tag in tags]
 

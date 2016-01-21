@@ -273,7 +273,8 @@ static void extract_features(
 
         f.write('}\n\n')
 
-        normalize_idx = pi_hashes_idx.get('hash_0_x_normalize')
+        lexicon_field = self.config.lexicon.field
+        normalize_idx = pi_hashes_idx.get('hash_%d_x_normalize' % lexicon_field)
 
         f.write('''
 #if BEAM_SIZE == 1
@@ -305,8 +306,10 @@ static void beam_search(
             size_t j;
             tags = get_tags(hash%d_fmix(invariant_hashes[N_INVARIANTS*i + %d]));
             if (tags[0] == 1) {
+                //printf("Only tag available: %%d\\n", tags[1]);
                 max_tag = (label)tags[1];
             } else {
+                //printf("%%d tags available\\n", tags[0]);
                 for (j=1; j<tags[0]+1; j++) {
                     extract_features(
                             result, tags[j], i, n_items,

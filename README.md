@@ -73,6 +73,8 @@ Uppsala University by Filip Salomonsson. It can do the following:
  
  * Tokenization (using a Python tokenizer by Filip Salomonsson)
  * POS tagging (using `efselab` with a SUC model)
+ * Conversion to Universal PoS tags (using `efselab` trained on Universal
+   Dependencies data)
  * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
  * Dependency prasing (using MaltParser by Joakim Nivre et al.)
 
@@ -85,6 +87,12 @@ Remember to first run `make` to compile the lemmatizer:
     wget http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz
     tar xvzf swe-pipeline.tar.gz
     python3 build_suc.py --skip-generate --python
+
+Next, build the SUC-to-UD conversion model and train it (data is included in
+this repository):
+
+    python3 build_udt_suc_sv.py --python --beam-size 1 --n-train-fields 4
+    ./udt_suc_sv train data/sv-ud-train.tab data/sv-ud-dev.tab swe-pipeline/suc-ud.bin
 
 Then you should be able to run the pipeline like this:
 

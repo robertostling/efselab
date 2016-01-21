@@ -10,9 +10,10 @@ def hash64trans(s):
     return fasthash.hashlongs64(tuple(ord(c) for c in s))
 
 class TagLexicon:
-    def __init__(self, name, n_items, open_tags, config):
+    def __init__(self, name, field, n_items, open_tags, config):
         config.lexicon = self
 
+        self.field = field
         size = 1 << (ceil(log2(n_items) + 0.5))
         self.table = [None] * size
         self.fun = hash32trans if config.lexicon_hash_bits == 32 \
