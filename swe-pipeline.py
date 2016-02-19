@@ -9,6 +9,7 @@ efselab and Python 3.
 __authors__ = """
 Filip Salomonsson <filip.salomonsson@gmail.com>
 Robert Östling <robert.ostling@helsinki.fi>
+Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
 import re
