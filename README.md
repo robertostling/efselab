@@ -74,7 +74,7 @@ Uppsala University by Filip Salomonsson. It can do the following:
  * Tokenization (using a Python tokenizer by Filip Salomonsson)
  * POS tagging (using `efselab` with a SUC model)
  * Conversion to Universal PoS tags (using `efselab` trained on Universal
-   Dependencies data)
+   Dependencies data plus some postprocessing heuristics by Aaron Smith)
  * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
  * Dependency prasing (using MaltParser by Joakim Nivre et al.)
 
@@ -163,5 +163,6 @@ Thanks to [Emil Stenström](https://github.com/EmilStenstrom) for testing and
 feedback.
 
 The Swedish pipeline wrapper script (including the tokenizer) was originally
-written by Filip Salomonsson.
+written by Filip Salomonsson (Uppsala), later modified by Robert Östling
+(Stockholm/Helsinki) and Aaron Smith (Uppsala).
 
