@@ -233,6 +233,25 @@ suc2ufeat = {
     "-": [],
 }
 
+def ud_verb_heuristics(ud_tags, tokens):
+    """Heuristics to improve accuracy of UD tags, return modified ud_tags"""
+    ud_tags = list(ud_tags)
+    n = len(ud_tags)
+    for i in range(n):
+        if ud_tags[i] == 'AUX':
+            for j in range(i+1, n):
+                if ud_tags[j] in ('AUX', 'VERB'):
+                    # If followed by AUX or VERB, do nothing
+                    break
+                if (ud_tags[j] in ('SCONJ', 'PUNCT')) \
+                        or tokens[j].lower() == 'som' or j == n-1:
+                    # If no AUX/VERB before SCONJ, PUNCT, "som" or end of
+                    # setence, change to VERB
+                    ud_tags[i] = 'VERB'
+                    break
+    return ud_tags
+
+
 if __name__ == '__main__':
     import fileinput
     import tempfile
@@ -414,6 +433,7 @@ if __name__ == '__main__':
                             (lemma, tag[:2], tag)
                             for lemma, tag in zip(lemmas, tags)]
                     ud_tags = udt_suc_sv.tag(ud_tagger_weights, suc_sentence)
+                    ud_tags = ud_verb_heuristics(ud_tags, sentence)
                     for row in zip(sentence, tags, ud_tags, lemmas):
                         print('\t'.join(row), file=tagged)
                 else:
