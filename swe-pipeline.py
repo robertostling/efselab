@@ -268,7 +268,7 @@ if __name__ == '__main__':
     TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
     UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
     LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
-    PARSING_MODEL = os.path.join(MODEL_DIR, "swemalt-1.7.2")
+    PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
     MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
     # Set up and parse command-line options
