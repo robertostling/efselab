@@ -401,7 +401,8 @@ if __name__ == '__main__':
         if options.skip_tokenization:
             sentences = [
                     sentence.split('\n')
-                    for sentence in data.split('\n\n')]
+                    for sentence in data.split('\n\n')
+                    if sentence.strip()]
         else:
             # Basic tokenization
             tokens = tokenize(data.strip())
