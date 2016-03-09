@@ -415,7 +415,7 @@ if __name__ == '__main__':
 
         # Write tokenized data to output dir, optionally tag as well
         tokenized = None
-        if options.tokenized:
+        if options.tokenized or options.tagged:
             tokenized = codecs.open(tokenized_filename, "w", "utf-8")
 
         tagged = None
