@@ -38,12 +38,12 @@ static inline void unicode_translate_normalize(
         const uint32_t *src,
         size_t src_len)
 {
-    size_t i;
-    for (i=0; i<src_len; i++) {
+    size_t i, len = (src_len <= *dest_len)? src_len : *dest_len;
+    for (i=0; i<len; i++) {
         if (likely(src[i] < 0x%x)) dest[i] = normalize_tab[src[i]];
         else dest[i] = src[i];
     }
-    *dest_len = src_len;
+    *dest_len = len;
 }
 
 static inline void unicode_translate_delexicalize(
@@ -52,12 +52,12 @@ static inline void unicode_translate_delexicalize(
         const uint32_t *src,
         size_t src_len)
 {
-    size_t i;
-    for (i=0; i<src_len; i++) {
+    size_t i, len = (src_len <= *dest_len)? src_len : *dest_len;
+    for (i=0; i<len; i++) {
         if (likely(src[i] < 0x%x)) dest[i] = delex_tab[src[i]];
         else dest[i] = %d;
     }
-    *dest_len = src_len;
+    *dest_len = len;
 }
 
 static inline void unicode_translate_abstract(
@@ -74,6 +74,7 @@ static inline void unicode_translate_abstract(
         if (c != last) {
             dest[n++] = c;
             last = c;
+            if (n >= *dest_len) break;
         }
     }
     *dest_len = n;
