@@ -1,9 +1,9 @@
 int main(int argc, const char **argv) {
-    if (!strcmp(argv[1], "train") && argc == 5) {
+    if (argc == 5 && !strcmp(argv[1], "train")) {
         if (train(argv[2], argv[3], argv[4])) return 1;
-    } else if (!strcmp(argv[1], "tag") && argc == 4) {
+    } else if (argc == 4 && !strcmp(argv[1], "tag")) {
         if (run(argv[2], argv[3], 0)) return 1;
-    } else if (!strcmp(argv[1], "tag") && argc == 5 &&
+    } else if (argc == 5 && !strcmp(argv[1], "tag") &&
                !strcmp(argv[4], "evaluate")) {
         if (run(argv[2], argv[3], 1)) return 1;
     } else {
