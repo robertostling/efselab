@@ -118,9 +118,11 @@ class PeekableIterator:
 
 # Define the tokenizer
 tokenizer_re = re.compile(r"""
-    \w+(?:(?=[^/,])\S\w+)*-?   # word-like stuff
+    \w+(?:(?=[^/,;:])\S\w+)*-? # word-like stuff
     |                          # ...or...
     [+.]?\d+(?:[ :/,.-]\d+)*   # numeric expressions
+    |
+    (?:[:;]'?-?[()DS/])|(?:\^_\^)
     |                          # ...or...
     (?P<para>\n(\s*\n)+)       # paragraph break
     |
