@@ -20,21 +20,72 @@ import pickle
 from datetime import datetime
 import zlib, base64
 
-ABBREVS = pickle.loads(zlib.decompress(base64.b64decode("""
-eJxdlDtv6zAMhXf9kkyC5bfWoujSoUMDrYJbx22Rh43YCG7+eOd7DiU5vhcoAousyI+HpHb9ZNTO
-PZ10p5xWy5QrOWg1FWreuYFWdwm+UrlBX+Cq6Doo18NYK3fwvZoa2hblbrC1yi3+piZL25tyczCb
-TLk3P9NjDF1nhT/YkfTsz7AWMfDrleaSofE5GUl41sMpgBgk5QkoRvL2yt1pR+Le32G1MbxW4ReF
-ZbxzxpU85U7hcskv4fJUNUvLWTBry6toFa68pplcuSSfJc0xxgLCrI8MJQzjfAuOAvlxoLAmSjWG
-8oucco0UoAgCLJ/xDhVYPnlHCEbJFPKlsIAZ9awlcLOKGnyt6EqPXUHRxoyIaipNVFuz3OACykH3
-dArJBxTqaAfIx8l3sFcR/oFQAmERgFIAfhAe/zDQBYIfPy9+gNPGEvr7Ca6Kenh+T5WJdEfagTD7
-I6xF7OyNJcNRsrk3P8MlEPtVwQoE+6BgJQjvMRbSv0ss+6A+/OHUZmTG51RvusHu1rEbaG9d/HNL
-iq3LcBHV1nEqo9p1nQasbiJeSNUSTlIJxXBduRtQDNcA3gjHUxS8kT2k4E0RxemCDE1JfTrK0FTp
-ihY3KZp6XeAmrAY6I/e4G/I9NRs1xu2OtKLKKEW0my2BJ64I7MLzvLalBc9zaEub1uRCu2zJBda0
-oWli0hy2iYjZbBi39AzZTMkJLisg/S3esiDBgY4iyrxpjwXNPrTHCs2k3FeQ1AJo8l/U1ArSy6MR
-FigvsRE2zen6asmkhmcrC6Oq47abLE/rbrJ1Yx7dMFm51mGysDo6sZqsXmfJZGl3O0LRKcvb+ZHO
-dXD+75gxMkKxZ8akYZbJM0ZmmaNnzGaWv9NdmeVvuVg9Hsz1ld0+s+GdRW9/xdOyub+0A03/BU99
-rSo=
-""")))
+ABBREVS = {
+ ('Bl', '.', 'a', '.'): 'Bl.a.',
+ ('Bl', 'a'): 'Bl_a',
+ ('Bl.a', '.'): 'Bl.a.',
+ ('D', 'v', 's'): 'D_v_s',
+ ('Fr', 'o', 'm'): 'Fr_o_m',
+ ('O', 's', 'v'): 'O_s_v',
+ ('S', 'k'): 'S_k',
+ ('T', '.', 'ex', '.'): 'T.ex.',
+ ('T', 'ex'): 'T_ex',
+ ('T', 'o', 'm'): 'T_o_m',
+ ('bl', '.', 'a', '.'): 'bl.a.',
+ ('bl', 'a'): 'bl_a',
+ ('bl.a', '.'): 'bl.a.',
+ ('d', '.', 'v', '.', 's', '.'): 'd.v.s.',
+ ('d', 'v', 's'): 'd_v_s',
+ ('d', 'y'): 'd_y',
+ ('d.v.s',): 'd.v.s',
+ ('dvs', '.'): 'dvs.',
+ ('e', '.', 'd', '.'): 'e.d.',
+ ('e', 'Kr'): 'e_Kr',
+ ('e', 'd'): 'e_d',
+ ('etc', '.'): 'etc.',
+ ('f', '.', 'n', '.'): 'f.n.',
+ ('f', 'Kr'): 'f_Kr',
+ ('f', 'd'): 'f_d',
+ ('f', 'n'): 'f_n',
+ ('f', 'ö'): 'f_ö',
+ ('fr', '.', 'o', '.', 'm', '.'): 'fr.o.m.',
+ ('fr', 'o', 'm'): 'fr_o_m',
+ ('i', 'st', 'f'): 'i_st_f',
+ ('m', '.', 'fl', '.'): 'm.fl.',
+ ('m', '.', 'm', '.'): 'm.m.',
+ ('m', 'a', 'o'): 'm_a_o',
+ ('m', 'fl'): 'm_fl',
+ ('m', 'fl', '.'): 'm_fl.',
+ ('m', 'm'): 'm_m',
+ ('m', 'm', '.'): 'm_m.',
+ ('m.fl', '.'): 'm.fl.',
+ ('m.m', '.'): 'm.m.',
+ ('o', '.', 's', '.', 'v', '.'): 'o.s.v.',
+ ('o', 'dyl'): 'o_dyl',
+ ('o', 's', 'v'): 'o_s_v',
+ ('osv', '.'): 'osv.',
+ ('p', 'g', 'a'): 'p_g_a',
+ ('P', '.', 'g', '.', 'a'): 'P.g.a',
+ ('p', '.', 'g', '.', 'a'): 'p.g.a',
+ ('P.g.a', '.'): 'P.g.a.',
+ ('p.g.a', '.'): 'p.g.a.',
+ ('s', '.'): 's.',
+ ('s', '.', 'k', '.'): 's.k.',
+ ('s', 'a', 's'): 's_a_s',
+ ('s', 'k'): 's_k',
+ ('s.k', '.'): 's.k.',
+ ('t', '.', 'ex'): 't.ex',
+ ('t', '.', 'ex', '.'): 't.ex.',
+ ('t', '.', 'h', '.'): 't.h.',
+ ('t', '.', 'o', '.', 'm', '.'): 't.o.m.',
+ ('t', '.', 'v', '.'): 't.v.',
+ ('t', 'ex'): 't_ex',
+ ('t', 'o', 'm'): 't_o_m',
+ ('t', 'o', 'r'): 't_o_r',
+ ('t', 'v'): 't_v',
+ ('t.ex', '.'): 't.ex.'
+}
+
 
 class PeekableIterator:
     def __init__(self, iterable):
