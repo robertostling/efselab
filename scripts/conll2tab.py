@@ -11,7 +11,7 @@ for line in sys.stdin:
     fields = line.rstrip('\n').split('\t')
     if len(fields) >= 6:
         word = fields[1]
-        tag = fields[3]+'|'+fields[5] if fields[5] else fields[3]
+        tag = fields[3]+'|'+fields[5] if (fields[5] and fields[5] != '_') else fields[3]
         print(word+'\t'+tag)
     else:
         print()

@@ -20,7 +20,7 @@ if config.skip_generate:
     sys.exit(0)
 
 # Read tagset and tag lexicon from corpus
-suc_tags, suc_norm_tags = read_dict('suc-data/suc-train.tab', 0, 1)
+suc_tags, suc_norm_tags = read_dict('suc-data/suc-blogs.tab', 0, 1)
 
 with open('suc-data/extra.txt', 'r', encoding='utf-8') as f:
     for line in f:
