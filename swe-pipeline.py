@@ -116,12 +116,14 @@ class PeekableIterator:
             value = [self._cache[i] for i in range(n)]
         return value
 
+smiley_re = re.compile(r"(?:[:;]'?-?[()DS/])|(?:\^_\^)$")
+
 # Define the tokenizer
 tokenizer_re = re.compile(r"""
-    \w+(?:(?=[^/,;:])\S\w+)*-? # word-like stuff
-    |                          # ...or...
     [+.]?\d+(?:[ :/,.-]\d+)*   # numeric expressions
     |
+    \w+(?:(?=[^/,;:])\S\w+)*-? # word-like stuff
+    |                          # ...or...
     (?:[:;]'?-?[()DS/])|(?:\^_\^)
     |                          # ...or...
     (?P<para>\n(\s*\n)+)       # paragraph break
@@ -190,7 +192,7 @@ def join_abbrevs(abbrevs, tokens):
             next_token = tokens.peek()
             if None not in (token, next_token) and \
                     (not was_abbrev) and \
-                    token[-1] in ".:!?" \
+                    (token[-1] in ".:!?" or smiley_re.match(token)) \
                     and next_token[0].isupper():
                 yield None
             was_abbrev = False
