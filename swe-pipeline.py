@@ -15,7 +15,6 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 import re
 import os
 import sys
-import codecs
 import pickle
 from datetime import datetime
 import zlib, base64
@@ -443,7 +442,7 @@ if __name__ == '__main__':
         print("Processing %s..."% (filename), file=sys.stderr)
 
         # Read input data file
-        data = codecs.open(filename, "r", "utf-8").read()
+        data = open(filename, "r", encoding="utf-8").read()
 
 
         #########################################
@@ -467,7 +466,7 @@ if __name__ == '__main__':
         # Write tokenized data to output dir, optionally tag as well
         tokenized = None
         if options.tokenized or options.tagged:
-            tokenized = codecs.open(tokenized_filename, "w", "utf-8")
+            tokenized = open(tokenized_filename, "w", encoding="utf-8")
 
         tagged = None
         if options.tagged or options.parsed:
@@ -508,8 +507,8 @@ if __name__ == '__main__':
 
         if options.parsed:
             # Conversion from .tag file to tagged.conll (input format for the parser)
-            tagged_conll_file = codecs.open(tagged_conll_filename, "w", "utf-8")
-            tagged_to_tagged_conll(codecs.open(tagged_filename, "r", "utf-8"),
+            tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
+            tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"),
                                    tagged_conll_file)
             tagged_conll_file.close()
 
