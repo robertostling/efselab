@@ -1,4 +1,15 @@
+"""Tokenize Swedish plain text data.
+
+This was originally the pipeline by Filip Salomonsson for the Swedish
+Treebank, later modified by Robert Östling to use Python 3.
+"""
+
 import re
+
+__authors__ = """
+Filip Salomonsson <filip.salomonsson@gmail.com>
+Robert Östling <robert.ostling@helsinki.fi>
+"""
 
 ABBREVS = {
     ('Bl', '.', 'a', '.'): 'Bl.a.',
