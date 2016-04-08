@@ -1,69 +1,69 @@
 import re
 
 ABBREVS = {
- ('Bl', '.', 'a', '.'): 'Bl.a.',
- ('Bl', 'a'): 'Bl.a',
- ('Bl.a', '.'): 'Bl.a.',
- ('D', 'v', 's'): 'D.v.s',
- ('Fr', 'o', 'm'): 'Fr.o.m',
- ('O', 's', 'v'): 'O.s.v',
- ('S', 'k'): 'S.k',
- ('T', '.', 'ex', '.'): 'T.ex.',
- ('T', 'ex'): 'T.ex',
- ('T', 'o', 'm'): 'T.o.m',
- ('bl', '.', 'a', '.'): 'bl.a.',
- ('bl', 'a'): 'bl.a.',
- ('bl.a', '.'): 'bl.a.',
- ('d', '.', 'v', '.', 's', '.'): 'd.v.s.',
- ('d', 'v', 's'): 'd.v.s.',
- ('d', 'y'): 'd.y',
- ('d.v.s',): 'd.v.s',
- ('dvs', '.'): 'dvs.',
- ('e', '.', 'd', '.'): 'e.d.',
- ('e', 'Kr'): 'e.Kr',
- ('e', 'd'): 'e.d',
- ('etc', '.'): 'etc.',
- ('f', '.', 'n', '.'): 'f.n.',
- ('f', 'Kr'): 'f.Kr',
- ('f', 'd'): 'f.d',
- ('f', 'n'): 'f.n',
- ('f', 'ö'): 'f.ö',
- ('fr', '.', 'o', '.', 'm', '.'): 'fr.o.m.',
- ('fr', 'o', 'm'): 'fr.o.m',
- ('i', 'st', 'f'): 'i.st.f',
- ('m', '.', 'fl', '.'): 'm.fl.',
- ('m', '.', 'm', '.'): 'm.m.',
- ('m', 'a', 'o'): 'm.a.o',
- ('m', 'fl'): 'm.fl',
- ('m', 'fl', '.'): 'm.fl.',
- ('m', 'm'): 'm.m',
- ('m', 'm', '.'): 'm.m.',
- ('m.fl', '.'): 'm.fl.',
- ('m.m', '.'): 'm.m.',
- ('o', '.', 's', '.', 'v', '.'): 'o.s.v.',
- ('o', 'dyl'): 'o.dyl',
- ('o', 's', 'v'): 'o.s.v',
- ('osv', '.'): 'osv.',
- ('p', 'g', 'a'): 'p.g.a',
- ('P', '.', 'g', '.', 'a'): 'P.g.a',
- ('p', '.', 'g', '.', 'a'): 'p.g.a',
- ('P.g.a', '.'): 'P.g.a.',
- ('p.g.a', '.'): 'p.g.a.',
- ('s', '.'): 's.',
- ('s', '.', 'k', '.'): 's.k.',
- ('s', 'a', 's'): 's.a.s',
- ('s', 'k'): 's.k',
- ('s.k', '.'): 's.k.',
- ('t', '.', 'ex'): 't.ex',
- ('t', '.', 'ex', '.'): 't.ex.',
- ('t', '.', 'h', '.'): 't.h.',
- ('t', '.', 'o', '.', 'm', '.'): 't.o.m.',
- ('t', '.', 'v', '.'): 't.v.',
- ('t', 'ex'): 't.ex',
- ('t', 'o', 'm'): 't.o.m',
- ('t', 'o', 'r'): 't.o.r',
- ('t', 'v'): 't.v',
- ('t.ex', '.'): 't.ex.'
+    ('Bl', '.', 'a', '.'): 'Bl.a.',
+    ('Bl', 'a'): 'Bl.a',
+    ('Bl.a', '.'): 'Bl.a.',
+    ('D', 'v', 's'): 'D.v.s',
+    ('Fr', 'o', 'm'): 'Fr.o.m',
+    ('O', 's', 'v'): 'O.s.v',
+    ('S', 'k'): 'S.k',
+    ('T', '.', 'ex', '.'): 'T.ex.',
+    ('T', 'ex'): 'T.ex',
+    ('T', 'o', 'm'): 'T.o.m',
+    ('bl', '.', 'a', '.'): 'bl.a.',
+    ('bl', 'a'): 'bl.a.',
+    ('bl.a', '.'): 'bl.a.',
+    ('d', '.', 'v', '.', 's', '.'): 'd.v.s.',
+    ('d', 'v', 's'): 'd.v.s.',
+    ('d', 'y'): 'd.y',
+    ('d.v.s',): 'd.v.s',
+    ('dvs', '.'): 'dvs.',
+    ('e', '.', 'd', '.'): 'e.d.',
+    ('e', 'Kr'): 'e.Kr',
+    ('e', 'd'): 'e.d',
+    ('etc', '.'): 'etc.',
+    ('f', '.', 'n', '.'): 'f.n.',
+    ('f', 'Kr'): 'f.Kr',
+    ('f', 'd'): 'f.d',
+    ('f', 'n'): 'f.n',
+    ('f', 'ö'): 'f.ö',
+    ('fr', '.', 'o', '.', 'm', '.'): 'fr.o.m.',
+    ('fr', 'o', 'm'): 'fr.o.m',
+    ('i', 'st', 'f'): 'i.st.f',
+    ('m', '.', 'fl', '.'): 'm.fl.',
+    ('m', '.', 'm', '.'): 'm.m.',
+    ('m', 'a', 'o'): 'm.a.o',
+    ('m', 'fl'): 'm.fl',
+    ('m', 'fl', '.'): 'm.fl.',
+    ('m', 'm'): 'm.m',
+    ('m', 'm', '.'): 'm.m.',
+    ('m.fl', '.'): 'm.fl.',
+    ('m.m', '.'): 'm.m.',
+    ('o', '.', 's', '.', 'v', '.'): 'o.s.v.',
+    ('o', 'dyl'): 'o.dyl',
+    ('o', 's', 'v'): 'o.s.v',
+    ('osv', '.'): 'osv.',
+    ('p', 'g', 'a'): 'p.g.a',
+    ('P', '.', 'g', '.', 'a'): 'P.g.a',
+    ('p', '.', 'g', '.', 'a'): 'p.g.a',
+    ('P.g.a', '.'): 'P.g.a.',
+    ('p.g.a', '.'): 'p.g.a.',
+    ('s', '.'): 's.',
+    ('s', '.', 'k', '.'): 's.k.',
+    ('s', 'a', 's'): 's.a.s',
+    ('s', 'k'): 's.k',
+    ('s.k', '.'): 's.k.',
+    ('t', '.', 'ex'): 't.ex',
+    ('t', '.', 'ex', '.'): 't.ex.',
+    ('t', '.', 'h', '.'): 't.h.',
+    ('t', '.', 'o', '.', 'm', '.'): 't.o.m.',
+    ('t', '.', 'v', '.'): 't.v.',
+    ('t', 'ex'): 't.ex',
+    ('t', 'o', 'm'): 't.o.m',
+    ('t', 'o', 'r'): 't.o.r',
+    ('t', 'v'): 't.v',
+    ('t.ex', '.'): 't.ex.'
 }
 
 def build_sentences(data):
@@ -139,7 +139,7 @@ def join_abbrevs(abbrevs, tokens):
     abbrev_prefixes = set()
     for abbrev in abbrevs:
         for i in range(len(abbrev)):
-            abbrev_prefixes.add(abbrev[:i+1])
+            abbrev_prefixes.add(abbrev[:i + 1])
 
     if abbrevs:
         max_abbrev_length = max([len(abbrev) for abbrev in abbrevs])
@@ -155,13 +155,13 @@ def join_abbrevs(abbrevs, tokens):
             for i in range(max_abbrev_length):
                 try:
                     # Peek ahead
-                    candidate = (token,) + tuple(tokens.peek(i+1))
+                    candidate = (token,) + tuple(tokens.peek(i + 1))
                     if candidate not in abbrev_prefixes:
                         break
                     # Check if we've built a known abbrev.
                     if candidate in abbrevs:
                         # Exclude final "." if the sentence ends with this abbrev.
-                        next_token = tokens.peek(i+1)[-1]
+                        next_token = tokens.peek(i + 1)[-1]
                         if token == "." and next_token is None:
                             break
 
@@ -191,15 +191,16 @@ def join_abbrevs(abbrevs, tokens):
                 yield None
             was_abbrev = False
 
-
 #from itertools import takewhile
 def group_sentences(tokens):
     """Group tokens into sentences, based on None tokens"""
     sentence = []
     for token in tokens:
         if token is None:
-            if sentence: yield sentence
+            if sentence:
+                yield sentence
             sentence = []
         else:
             sentence.append(token)
-    if sentence: yield sentence
+    if sentence:
+        yield sentence
