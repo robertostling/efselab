@@ -191,7 +191,6 @@ def join_abbrevs(abbrevs, tokens):
                 yield None
             was_abbrev = False
 
-#from itertools import takewhile
 def group_sentences(tokens):
     """Group tokens into sentences, based on None tokens"""
     sentence = []
