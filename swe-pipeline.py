@@ -14,6 +14,7 @@ from optparse import OptionParser
 from subprocess import Popen
 
 from conll import tagged_to_tagged_conll
+from lemmatize import SUCLemmatizer
 from tagger import SucTagger, UDTagger
 from tokenize import build_sentences
 
@@ -114,8 +115,7 @@ if __name__ == '__main__':
 
     lemmatizer = None
     if options.lemmatized:
-        import lemmatize
-        lemmatizer = lemmatize.SUCLemmatizer()
+        lemmatizer = SUCLemmatizer()
         lemmatizer.load(options.lemmatization_model)
 
     # Process each input file
