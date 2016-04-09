@@ -153,7 +153,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
         for sentence in sentences:
             write_to_file(tokenized, sentence)
 
-            if tagged:
+            if options.tagged or options.parsed:
                 suc_tags = suc_tagger.tag(sentence)
                 if lemmatizer:
                     lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
