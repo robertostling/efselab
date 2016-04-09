@@ -152,16 +152,10 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
                 tagged_sentence = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
                 write_to_file(tagged, tagged_sentence)
 
-    if options.tokenized:
-        shutil.copy(tokenized_filename, options.output_dir)
-
-    if options.tagged:
-        shutil.copy(tagged_filename, options.output_dir)
-
     if options.parsed:
         parsed_filename = parse(options, filename, tmp_dir)
 
-        shutil.copy(parsed_filename, options.output_dir)
+    write_to_output(options, tokenized_filename, tagged_filename, parsed_filename)
 
     print("done.", file=sys.stderr)
 
@@ -224,6 +218,16 @@ def write_to_file(file, lines):
     for line in lines:
         print(line, file=file)
     print(file=file)
+
+def write_to_output(options, tokenized_filename, tagged_filename, parsed_filename):
+    if options.tokenized:
+        shutil.copy(tokenized_filename, options.output_dir)
+
+    if options.tagged:
+        shutil.copy(tagged_filename, options.output_dir)
+
+    if options.parsed:
+        shutil.copy(parsed_filename, options.output_dir)
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:
