@@ -187,8 +187,8 @@ if __name__ == '__main__':
                 suc_tags = suc_tag(tagger_weights, sentence)
                 if lemmatizer:
                     lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-                    ud_tagged_sentence = udt_tag(sentence, lemmas, suc_tags, ud_tagger_weights)
-                    for row in ud_tagged_sentence:
+                    ud_tags = udt_tag(sentence, lemmas, suc_tags, ud_tagger_weights)
+                    for row in zip(sentence, suc_tags, ud_tags, lemmas):
                         print("\t".join(row), file=tagged)
                 else:
                     for token, tag in zip(sentence, suc_tags):

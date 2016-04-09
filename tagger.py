@@ -9,7 +9,7 @@ def udt_tag(sentence, lemmas, suc_tags, ud_tagger_weights):
     suc_sentence = [(lemma, tag[:2], tag) for lemma, tag in zip(lemmas, suc_tags)]
     ud_tags = udt_suc_sv.tag(ud_tagger_weights, suc_sentence)
     ud_tags = ud_verb_heuristics(ud_tags, sentence, lemmas)
-    return zip(sentence, suc_tags, ud_tags, lemmas)
+    return ud_tags
 
 def ud_verb_heuristics(ud_tags, tokens, lemmas):
     """Heuristics to improve accuracy of UD tags, return modified ud_tags"""
