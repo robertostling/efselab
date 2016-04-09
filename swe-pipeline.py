@@ -100,12 +100,11 @@ def validate_options(options, args):
     if options.lemmatized and not options.tagged:
         sys.exit("Can't lemmatize without tagging.")
     if options.lemmatized and not os.path.exists(options.lemmatization_model):
-        sys.exit("Can't find lemmatizer model file %s." %
-                 options.lemmatization_model)
+        sys.exit("Can't find lemmatizer model file %s." % options.lemmatization_model)
     if options.parsed and not os.path.exists(jarfile):
         sys.exit("Can't find MaltParser jar file %s." % jarfile)
-    if options.parsed and not os.path.exists(options.parsing_model+".mco"):
-        sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
+    if options.parsed and not os.path.exists(options.parsing_model + ".mco"):
+        sys.exit("Can't find parsing model: %s" % options.parsing_model + ".mco")
 
 def run_pipeline(options, args):
     suc_tagger = None
@@ -119,7 +118,7 @@ def run_pipeline(options, args):
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
     if options.parsed:
-        shutil.copy(os.path.join(SCRIPT_DIR, options.parsing_model+".mco"),
+        shutil.copy(os.path.join(SCRIPT_DIR, options.parsing_model + ".mco"),
                     tmp_dir)
 
     lemmatizer = None
@@ -134,7 +133,7 @@ def run_pipeline(options, args):
     cleanup(options, tmp_dir)
 
 def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
-    print("Processing %s..."% (filename), file=sys.stderr)
+    print("Processing %s..." % (filename), file=sys.stderr)
 
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
