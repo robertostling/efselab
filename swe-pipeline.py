@@ -146,23 +146,16 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
     sentences = run_tokenization(options, filename)
 
-    # Write tokenized data to output dir, optionally tag as well
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
 
+        # Run only one pass over sentences for writing to both files
         for sentence in sentences:
             write_to_file(tokenized, sentence)
 
             if options.tagged or options.parsed:
-                suc_tags = suc_tagger.tag(sentence)
-                if lemmatizer:
-                    lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-                    ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
-                    lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
-                else:
-                    lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
-
-                write_to_file(tagged, lines)
+                tagged_sentence = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
+                write_to_file(tagged, tagged_sentence)
 
     if options.tokenized:
         shutil.copy(tokenized_filename, options.output_dir)
@@ -193,6 +186,17 @@ def run_tokenization(options, filename):
             sentences = build_sentences(data)
 
     return sentences
+
+def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
+    suc_tags = suc_tagger.tag(sentence)
+    if lemmatizer:
+        lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
+        ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
+        lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
+    else:
+        lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
+
+    return lines
 
 def write_to_file(file, lines):
     for line in lines:
