@@ -150,7 +150,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
 
-        for s_id, sentence in enumerate(sentences):
+        for sentence in sentences:
             write_to_file(tokenized, sentence)
 
             if tagged:
