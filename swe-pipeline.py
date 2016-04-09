@@ -16,7 +16,7 @@ import os
 import sys
 from tokenize import build_sentences
 from conll import tagged_to_tagged_conll
-from tagger import udt_tag, suc_tag
+from tagger import SucTagger, UDTagger
 
 if __name__ == '__main__':
     import fileinput
@@ -104,11 +104,10 @@ if __name__ == '__main__':
         sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
 
     if options.tagged or options.parsed:
-        with open(options.tagging_model, 'rb') as f:
-            tagger_weights = f.read()
+        suc_tagger = SucTagger(options.tagging_model)
+
         if options.lemmatized:
-            with open(options.ud_tagging_model, 'rb') as f:
-                ud_tagger_weights = f.read()
+            ud_tagger = UDTagger(options.ud_tagging_model)
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -184,10 +183,10 @@ if __name__ == '__main__':
             print(file=tokenized)
 
             if tagged:
-                suc_tags = suc_tag(tagger_weights, sentence)
+                suc_tags = suc_tagger.tag(sentence)
                 if lemmatizer:
                     lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-                    ud_tags = udt_tag(sentence, lemmas, suc_tags, ud_tagger_weights)
+                    ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
                     for row in zip(sentence, suc_tags, ud_tags, lemmas):
                         print("\t".join(row), file=tagged)
                 else:
