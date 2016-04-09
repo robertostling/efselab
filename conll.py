@@ -27,6 +27,7 @@ suc2ufeat = {
     "-": [],
 }
 
+
 def tagged_to_tagged_conll(tagged, tagged_conll):
     """Read a .tag file and write to the corresponding .tagged.conll file"""
     s_id = 1
@@ -50,17 +51,17 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
             feats = morph.split("|")
             for f in feats:
                 if "/" in f:
-                    uf = "" # don't include feats with multiple options in the UD feats
+                    uf = ""  # don't include feats with multiple options in the UD feats
                 else:
                     uf = suc2ufeat[f]
                 if uf != "":
                     ufeats = ufeats + suc2ufeat[f]
-            if "VerbForm=Fin" in ufeats and not "Mood=Imp" in ufeats and not "Mood=Sub" in ufeats:
+            if "VerbForm=Fin" in ufeats and "Mood=Imp" not in ufeats and "Mood=Sub" not in ufeats:
                 ufeats = ufeats + ["Mood=Ind"]
             if pos in ["HA", "HD", "HP", "HS"]:
                 ufeats = ufeats + ["PronType=Int,Rel"]
             if pos in ["HS", "PS"]:
-                ufeats = ufeats + ["Poss=Yes"] # Test this!
+                ufeats = ufeats + ["Poss=Yes"]  # Test this!
             ufeat_string = "|".join(sorted(ufeats))
             if ufeat_string != "":
                 ud_morph = ufeat_string
