@@ -134,20 +134,13 @@ def run_pipeline(options, args):
     cleanup(options, tmp_dir)
 
 def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
-    name_root, ext = os.path.splitext(filename)
-    basename = os.path.basename(name_root)
-
-    def output_filename(suffix):
-        return os.path.join(tmp_dir, "%s.%s" % (basename, suffix))
 
     # Set up output filenames
-    tokenized_filename = output_filename("tok")
-    tagged_filename = output_filename("tag")
-    tagged_conll_filename = output_filename("tag.conll")
-    parsed_filename = output_filename("conll")
-    log_filename = output_filename("log")
-
-
+    tokenized_filename = output_filename(tmp_dir, filename, "tok")
+    tagged_filename = output_filename(tmp_dir, filename, "tag")
+    tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
+    parsed_filename = output_filename(tmp_dir, filename, "conll")
+    log_filename = output_filename(tmp_dir, filename, "log")
 
     # Open the log file for writing
     log_file = open(log_filename, "w")
@@ -245,6 +238,11 @@ def cleanup(options, tmp_dir):
         shutil.rmtree(tmp_dir)
     else:
         print("Leaving working directory as is: %s" % tmp_dir, file=sys.stderr)
+
+def output_filename(tmp_dir, filename, suffix):
+    directory, _ = os.path.splitext(filename)
+    basename = os.path.basename(directory)
+    return os.path.join(tmp_dir, "%s.%s" % (basename, suffix))
 
 if __name__ == '__main__':
     main()
