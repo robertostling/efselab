@@ -16,7 +16,7 @@ import os
 import sys
 from tokenize import build_sentences
 from conll import tagged_to_tagged_conll
-from udt import udt_tag
+from tagger import udt_tag, suc_tag
 
 if __name__ == '__main__':
     import fileinput
@@ -104,7 +104,6 @@ if __name__ == '__main__':
         sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
 
     if options.tagged or options.parsed:
-        import suc
         with open(options.tagging_model, 'rb') as f:
             tagger_weights = f.read()
         if options.lemmatized:
@@ -185,7 +184,7 @@ if __name__ == '__main__':
             print(file=tokenized)
 
             if tagged:
-                tags = suc.tag(tagger_weights, sentence)
+                tags = suc_tag(tagger_weights, sentence)
                 if lemmatizer:
                     lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, tags)]
                     ud_tagged_sentence = udt_tag(sentence, lemmas, tags, ud_tagger_weights)

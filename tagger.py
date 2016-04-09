@@ -1,4 +1,9 @@
 import udt_suc_sv
+import suc
+
+def suc_tag(tagger_weights, sentence):
+    tags = suc.tag(tagger_weights, sentence)
+    return tags
 
 def udt_tag(sentence, lemmas, suc_tags, ud_tagger_weights):
     suc_sentence = [(lemma, tag[:2], tag) for lemma, tag in zip(lemmas, suc_tags)]
