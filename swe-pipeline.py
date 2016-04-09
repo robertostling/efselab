@@ -148,17 +148,6 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     log_filename = output_filename("log")
 
 
-    # The parser command line is dependent on the input and
-    # output files, so we build that one for each data file
-    jarfile = os.path.expanduser(options.malt)
-    parser_cmdline = ["java", "-Xmx2000m",
-                      "-jar", jarfile,
-                      "-m", "parse",
-                      "-i", tagged_conll_filename,
-                      "-o", parsed_filename,
-                      "-w", tmp_dir,
-                      "-c", os.path.basename(options.parsing_model)]
-
 
     # Open the log file for writing
     log_file = open(log_filename, "w")
@@ -219,27 +208,37 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     # Parsing
 
     if options.parsed:
-        # Conversion from .tag file to tagged.conll (input format for the parser)
-        tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
-        tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"),
-                               tagged_conll_file)
-        tagged_conll_file.close()
+        returncode = parse(options, parsed_filename, tagged_filename, tagged_conll_filename, tmp_dir, log_file)
 
-        # Run the parser
-        returncode = Popen(parser_cmdline,
-                           stdout=log_file, stderr=log_file).wait()
         if returncode:
-            sys.exit("Parsing failed! Log file may contain "
-                     "more information: %s" % log_filename)
+            sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
 
-        if options.parsed:
-            shutil.copy(parsed_filename, options.output_dir)
-
-    # end: if options.parsed
+        shutil.copy(parsed_filename, options.output_dir)
 
     log_file.close()
 
     print("done.", file=sys.stderr)
+
+def parse(options, parsed_filename, tagged_filename, tagged_conll_filename, tmp_dir, log_file):
+    # The parser command line is dependent on the input and
+    # output files, so we build that one for each data file
+    parser_cmdline = ["java", "-Xmx2000m",
+                      "-jar", os.path.expanduser(options.malt),
+                      "-m", "parse",
+                      "-i", tagged_conll_filename,
+                      "-o", parsed_filename,
+                      "-w", tmp_dir,
+                      "-c", os.path.basename(options.parsing_model)]
+
+    # Conversion from .tag file to tagged.conll (input format for the parser)
+    tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
+    tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"), tagged_conll_file)
+    tagged_conll_file.close()
+
+    # Run the parser
+    returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
+
+    return returncode
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:
