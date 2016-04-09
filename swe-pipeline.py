@@ -156,21 +156,18 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
         tagged = open(tagged_filename, "w", encoding="utf-8")
 
     for s_id, sentence in enumerate(sentences):
-        for t_id, token in enumerate(sentence):
-            print(token, file=tokenized)
-        print(file=tokenized)
+        write_to_file(tokenized, sentence)
 
         if tagged:
             suc_tags = suc_tagger.tag(sentence)
             if lemmatizer:
                 lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
                 ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
-                for row in zip(sentence, suc_tags, ud_tags, lemmas):
-                    print("\t".join(row), file=tagged)
+                lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
             else:
-                for token, tag in zip(sentence, suc_tags):
-                    print(token + '\t' + tag, file=tagged)
-            print(file=tagged)
+                lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
+
+            write_to_file(tagged, lines)
 
     if tokenized: tokenized.close()
     if tagged: tagged.close()
@@ -204,6 +201,11 @@ def run_tokenization(options, filename):
             sentences = build_sentences(data)
 
     return sentences
+
+def write_to_file(file, lines):
+    for line in lines:
+        print(line, file=file)
+    print(file=file)
 
 def parse(options, filename, tmp_dir):
     tagged_filename = output_filename(tmp_dir, filename, "tag")
