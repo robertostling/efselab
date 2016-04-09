@@ -24,7 +24,7 @@ Robert Östling <robert.ostling@helsinki.fi>
 Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
-if __name__ == '__main__':
+def main():
     # Set some sensible defaults
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
     MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
@@ -234,3 +234,6 @@ if __name__ == '__main__':
         shutil.rmtree(tmp_dir)
     else:
         print("Leaving working directory as is: %s" % tmp_dir, file=sys.stderr)
+
+if __name__ == '__main__':
+    main()
