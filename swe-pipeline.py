@@ -134,11 +134,10 @@ def run_pipeline(options, args):
     cleanup(options, tmp_dir)
 
 def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
+    print("Processing %s..."% (filename), file=sys.stderr)
 
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
-
-    print("Processing %s..."% (filename), file=sys.stderr)
 
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
@@ -191,11 +190,6 @@ def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
 
     return lines
 
-def write_to_file(file, lines):
-    for line in lines:
-        print(line, file=file)
-    print(file=file)
-
 def parse(options, filename, tmp_dir):
     tagged_filename = output_filename(tmp_dir, filename, "tag")
     tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
@@ -225,6 +219,11 @@ def parse(options, filename, tmp_dir):
         sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
 
     return parsed_filename
+
+def write_to_file(file, lines):
+    for line in lines:
+        print(line, file=file)
+    print(file=file)
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:
