@@ -138,12 +138,6 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     # Set up output filenames
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
-    tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
-    parsed_filename = output_filename(tmp_dir, filename, "conll")
-    log_filename = output_filename(tmp_dir, filename, "log")
-
-    # Open the log file for writing
-    log_file = open(log_filename, "w")
 
     print("Processing %s..."% (filename), file=sys.stderr)
 
@@ -201,18 +195,18 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     # Parsing
 
     if options.parsed:
-        returncode = parse(options, parsed_filename, tagged_filename, tagged_conll_filename, tmp_dir, log_file)
-
-        if returncode:
-            sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
+        parsed_filename = parse(options, filename, tmp_dir)
 
         shutil.copy(parsed_filename, options.output_dir)
 
-    log_file.close()
-
     print("done.", file=sys.stderr)
 
-def parse(options, parsed_filename, tagged_filename, tagged_conll_filename, tmp_dir, log_file):
+def parse(options, filename, tmp_dir):
+    tagged_filename = output_filename(tmp_dir, filename, "tag")
+    tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
+    parsed_filename = output_filename(tmp_dir, filename, "conll")
+    log_filename = output_filename(tmp_dir, filename, "log")
+
     # The parser command line is dependent on the input and
     # output files, so we build that one for each data file
     parser_cmdline = ["java", "-Xmx2000m",
@@ -229,9 +223,13 @@ def parse(options, parsed_filename, tagged_filename, tagged_conll_filename, tmp_
     tagged_conll_file.close()
 
     # Run the parser
-    returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
+    with open(log_filename, "w") as log_file:
+        returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
 
-    return returncode
+    if returncode:
+        sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
+
+    return parsed_filename
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:
