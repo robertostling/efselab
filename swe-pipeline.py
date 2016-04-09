@@ -135,14 +135,10 @@ def run_pipeline(options, args):
 
 def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
-    # Set up output filenames
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
 
     print("Processing %s..."% (filename), file=sys.stderr)
-
-    #########################################
-    # Tokenization, tagging and lemmatization
 
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
@@ -162,9 +158,6 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
     if options.tagged:
         shutil.copy(tagged_filename, options.output_dir)
-
-    #########
-    # Parsing
 
     if options.parsed:
         parsed_filename = parse(options, filename, tmp_dir)
