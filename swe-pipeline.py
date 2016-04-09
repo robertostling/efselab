@@ -144,10 +144,10 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     #########################################
     # Tokenization, tagging and lemmatization
 
-    sentences = run_tokenization(options, filename)
-
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
+
+        sentences = run_tokenization(options, filename)
 
         # Run only one pass over sentences for writing to both files
         for sentence in sentences:
