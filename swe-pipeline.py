@@ -6,27 +6,25 @@ Treebank (using hunpos for tagging), later modified by Robert Östling to use
 efselab and Python 3.
 """
 
+import fileinput
+import os
+import shutil
+import sys
+import tempfile
+from optparse import OptionParser
+from subprocess import PIPE, Popen
+
+from conll import tagged_to_tagged_conll
+from tagger import SucTagger, UDTagger
+from tokenize import build_sentences
+
 __authors__ = """
 Filip Salomonsson <filip.salomonsson@gmail.com>
 Robert Östling <robert.ostling@helsinki.fi>
 Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
-import os
-import sys
-from tokenize import build_sentences
-from conll import tagged_to_tagged_conll
-from tagger import SucTagger, UDTagger
-
 if __name__ == '__main__':
-    import fileinput
-    import tempfile
-    import shutil
-
-    from subprocess import Popen, PIPE
-
-    from optparse import OptionParser
-
     # Set some sensible defaults
     SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
     MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
