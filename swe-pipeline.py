@@ -24,16 +24,16 @@ Robert Östling <robert.ostling@helsinki.fi>
 Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
-def main():
-    # Set some sensible defaults
-    SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-    MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
-    TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
-    UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
-    LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
-    PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
-    MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
+# Set some sensible defaults
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
+TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
+UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
+LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
+PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
+MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
+def main():
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
     op = OptionParser(usage=usage)
