@@ -34,6 +34,11 @@ PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
 MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
 def main():
+    options, args = parse_options()
+    validate_options(options, args)
+    run_pipeline(options, args)
+
+def parse_options():
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
     op = OptionParser(usage=usage)
@@ -67,8 +72,9 @@ def main():
                   help=".jar file of MaltParser")
     op.add_option("--no-delete", dest="no_delete", action="store_true",
                   help="Don't delete temporary working directory.")
+    return op.parse_args()
 
-    options, args = op.parse_args()
+def validate_options(options, args):
     if options.all:
         options.tokenized = True
         options.tagged = True
@@ -76,14 +82,14 @@ def main():
         options.parsed = True
 
     if not (options.tokenized or options.tagged or options.parsed):
-        op.error("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
+        sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
 
     # If no target directory was given: write error message and exit.
     if not options.output_dir:
-        op.error("No target directory specified. Use --output-dir=DIR")
+        sys.exit("No target directory specified. Use --output-dir=DIR")
 
     if not args:
-        op.error("Please specify at least one filename as input.")
+        sys.exit("Please specify at least one filename as input.")
 
     # Set up (part of) command lines
     jarfile = os.path.expanduser(options.malt)
@@ -101,6 +107,7 @@ def main():
     if options.parsed and not os.path.exists(options.parsing_model+".mco"):
         sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
 
+def run_pipeline(options, args):
     if options.tagged or options.parsed:
         suc_tagger = SucTagger(options.tagging_model)
 
@@ -136,6 +143,7 @@ def main():
 
         # The parser command line is dependent on the input and
         # output files, so we build that one for each data file
+        jarfile = os.path.expanduser(options.malt)
         parser_cmdline = ["java", "-Xmx2000m",
                           "-jar", jarfile,
                           "-m", "parse",
