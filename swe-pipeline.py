@@ -6,13 +6,12 @@ Treebank (using hunpos for tagging), later modified by Robert Östling to use
 efselab and Python 3.
 """
 
-import fileinput
 import os
 import shutil
 import sys
 import tempfile
 from optparse import OptionParser
-from subprocess import PIPE, Popen
+from subprocess import Popen
 
 from conll import tagged_to_tagged_conll
 from tagger import SucTagger, UDTagger
