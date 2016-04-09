@@ -163,7 +163,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
     tagged = None
     if options.tagged or options.parsed:
-        tagged = open(tagged_filename, "w")
+        tagged = open(tagged_filename, "w", encoding="utf-8")
 
     for s_id, sentence in enumerate(sentences):
         for t_id, token in enumerate(sentence):
@@ -223,7 +223,7 @@ def parse(options, filename, tmp_dir):
     tagged_conll_file.close()
 
     # Run the parser
-    with open(log_filename, "w") as log_file:
+    with open(log_filename, "w", encoding="utf-8") as log_file:
         returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
 
     if returncode:
