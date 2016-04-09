@@ -141,20 +141,10 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
     print("Processing %s..."% (filename), file=sys.stderr)
 
-    # Read input data file
-    data = open(filename, "r", encoding="utf-8").read()
-
-
     #########################################
     # Tokenization, tagging and lemmatization
 
-    if options.skip_tokenization:
-        sentences = [
-                sentence.split('\n')
-                for sentence in data.split('\n\n')
-                if sentence.strip()]
-    else:
-        sentences = build_sentences(data)
+    sentences = run_tokenization(options, filename)
 
     # Write tokenized data to output dir, optionally tag as well
     tokenized = None
@@ -200,6 +190,20 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
         shutil.copy(parsed_filename, options.output_dir)
 
     print("done.", file=sys.stderr)
+
+def run_tokenization(options, filename):
+    with open(filename, "r", encoding="utf-8") as input_file:
+        data = input_file.read()
+
+        if options.skip_tokenization:
+            sentences = [
+                sentence.split('\n')
+                for sentence in data.split('\n\n')
+                if sentence.strip()]
+        else:
+            sentences = build_sentences(data)
+
+    return sentences
 
 def parse(options, filename, tmp_dir):
     tagged_filename = output_filename(tmp_dir, filename, "tag")
