@@ -147,30 +147,22 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     sentences = run_tokenization(options, filename)
 
     # Write tokenized data to output dir, optionally tag as well
-    tokenized = None
-    if options.tokenized or options.tagged:
-        tokenized = open(tokenized_filename, "w", encoding="utf-8")
+    with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
+            open(tagged_filename, "w", encoding="utf-8") as tagged:
 
-    tagged = None
-    if options.tagged or options.parsed:
-        tagged = open(tagged_filename, "w", encoding="utf-8")
+        for s_id, sentence in enumerate(sentences):
+            write_to_file(tokenized, sentence)
 
-    for s_id, sentence in enumerate(sentences):
-        write_to_file(tokenized, sentence)
+            if tagged:
+                suc_tags = suc_tagger.tag(sentence)
+                if lemmatizer:
+                    lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
+                    ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
+                    lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
+                else:
+                    lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
 
-        if tagged:
-            suc_tags = suc_tagger.tag(sentence)
-            if lemmatizer:
-                lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-                ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
-                lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
-            else:
-                lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
-
-            write_to_file(tagged, lines)
-
-    if tokenized: tokenized.close()
-    if tagged: tagged.close()
+                write_to_file(tagged, lines)
 
     if options.tokenized:
         shutil.copy(tokenized_filename, options.output_dir)
