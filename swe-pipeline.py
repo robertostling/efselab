@@ -6,36 +6,39 @@ Treebank (using hunpos for tagging), later modified by Robert Östling to use
 efselab and Python 3.
 """
 
+import os
+import shutil
+import sys
+import tempfile
+from optparse import OptionParser
+from subprocess import Popen
+
+from conll import tagged_to_tagged_conll
+from lemmatize import SUCLemmatizer
+from tagger import SucTagger, UDTagger
+from tokenize import build_sentences
+
 __authors__ = """
 Filip Salomonsson <filip.salomonsson@gmail.com>
 Robert Östling <robert.ostling@helsinki.fi>
 Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
-import os
-import sys
-from tokenize import build_sentences
-from conll import tagged_to_tagged_conll
-from tagger import SucTagger, UDTagger
+# Set some sensible defaults
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
+TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
+UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
+LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
+PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
+MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
-if __name__ == '__main__':
-    import fileinput
-    import tempfile
-    import shutil
+def main():
+    options, args = parse_options()
+    validate_options(options, args)
+    run_pipeline(options, args)
 
-    from subprocess import Popen, PIPE
-
-    from optparse import OptionParser
-
-    # Set some sensible defaults
-    SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-    MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
-    TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
-    UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
-    LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
-    PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
-    MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
-
+def parse_options():
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
     op = OptionParser(usage=usage)
@@ -69,8 +72,9 @@ if __name__ == '__main__':
                   help=".jar file of MaltParser")
     op.add_option("--no-delete", dest="no_delete", action="store_true",
                   help="Don't delete temporary working directory.")
+    return op.parse_args()
 
-    options, args = op.parse_args()
+def validate_options(options, args):
     if options.all:
         options.tokenized = True
         options.tagged = True
@@ -78,14 +82,14 @@ if __name__ == '__main__':
         options.parsed = True
 
     if not (options.tokenized or options.tagged or options.parsed):
-        op.error("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
+        sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
 
     # If no target directory was given: write error message and exit.
     if not options.output_dir:
-        op.error("No target directory specified. Use --output-dir=DIR")
+        sys.exit("No target directory specified. Use --output-dir=DIR")
 
     if not args:
-        op.error("Please specify at least one filename as input.")
+        sys.exit("Please specify at least one filename as input.")
 
     # Set up (part of) command lines
     jarfile = os.path.expanduser(options.malt)
@@ -96,13 +100,15 @@ if __name__ == '__main__':
     if options.lemmatized and not options.tagged:
         sys.exit("Can't lemmatize without tagging.")
     if options.lemmatized and not os.path.exists(options.lemmatization_model):
-        sys.exit("Can't find lemmatizer model file %s." %
-                 options.lemmatization_model)
+        sys.exit("Can't find lemmatizer model file %s." % options.lemmatization_model)
     if options.parsed and not os.path.exists(jarfile):
         sys.exit("Can't find MaltParser jar file %s." % jarfile)
-    if options.parsed and not os.path.exists(options.parsing_model+".mco"):
-        sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
+    if options.parsed and not os.path.exists(options.parsing_model + ".mco"):
+        sys.exit("Can't find parsing model: %s" % options.parsing_model + ".mco")
 
+def run_pipeline(options, args):
+    suc_tagger = None
+    ud_tagger = None
     if options.tagged or options.parsed:
         suc_tagger = SucTagger(options.tagging_model)
 
@@ -112,128 +118,126 @@ if __name__ == '__main__':
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
     if options.parsed:
-        shutil.copy(os.path.join(SCRIPT_DIR, options.parsing_model+".mco"),
+        shutil.copy(os.path.join(SCRIPT_DIR, options.parsing_model + ".mco"),
                     tmp_dir)
 
     lemmatizer = None
     if options.lemmatized:
-        import lemmatize
-        lemmatizer = lemmatize.SUCLemmatizer()
+        lemmatizer = SUCLemmatizer()
         lemmatizer.load(options.lemmatization_model)
 
     # Process each input file
     for filename in args:
-        name_root, ext = os.path.splitext(filename)
-        basename = os.path.basename(name_root)
+        process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger)
 
-        def output_filename(suffix):
-            return os.path.join(tmp_dir, "%s.%s" % (basename, suffix))
+    cleanup(options, tmp_dir)
 
-        # Set up output filenames
-        tokenized_filename = output_filename("tok")
-        tagged_filename = output_filename("tag")
-        tagged_conll_filename = output_filename("tag.conll")
-        parsed_filename = output_filename("conll")
-        log_filename = output_filename("log")
+def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
+    print("Processing %s..." % (filename), file=sys.stderr)
 
+    tokenized_filename = output_filename(tmp_dir, filename, "tok")
+    tagged_filename = output_filename(tmp_dir, filename, "tag")
 
-        # The parser command line is dependent on the input and
-        # output files, so we build that one for each data file
-        parser_cmdline = ["java", "-Xmx2000m",
-                          "-jar", jarfile,
-                          "-m", "parse",
-                          "-i", tagged_conll_filename,
-                          "-o", parsed_filename,
-                          "-w", tmp_dir,
-                          "-c", os.path.basename(options.parsing_model)]
+    with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
+            open(tagged_filename, "w", encoding="utf-8") as tagged:
 
+        sentences = run_tokenization(options, filename)
 
-        # Open the log file for writing
-        log_file = open(log_filename, "w")
+        # Run only one pass over sentences for writing to both files
+        for sentence in sentences:
+            write_to_file(tokenized, sentence)
 
-        print("Processing %s..."% (filename), file=sys.stderr)
+            if options.tagged or options.parsed:
+                tagged_sentence = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
+                write_to_file(tagged, tagged_sentence)
 
-        # Read input data file
-        data = open(filename, "r", encoding="utf-8").read()
+    if options.parsed:
+        parsed_filename = parse(options, filename, tmp_dir)
 
+    write_to_output(options, tokenized_filename, tagged_filename, parsed_filename)
 
-        #########################################
-        # Tokenization, tagging and lemmatization
+    print("done.", file=sys.stderr)
+
+def run_tokenization(options, filename):
+    with open(filename, "r", encoding="utf-8") as input_file:
+        data = input_file.read()
 
         if options.skip_tokenization:
             sentences = [
-                    sentence.split('\n')
-                    for sentence in data.split('\n\n')
-                    if sentence.strip()]
+                sentence.split('\n')
+                for sentence in data.split('\n\n')
+                if sentence.strip()]
         else:
             sentences = build_sentences(data)
 
-        # Write tokenized data to output dir, optionally tag as well
-        tokenized = None
-        if options.tokenized or options.tagged:
-            tokenized = open(tokenized_filename, "w", encoding="utf-8")
+    return sentences
 
-        tagged = None
-        if options.tagged or options.parsed:
-            tagged = open(tagged_filename, "w")
+def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
+    suc_tags = suc_tagger.tag(sentence)
+    if lemmatizer:
+        lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
+        ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
+        lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
+    else:
+        lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
 
-        for s_id, sentence in enumerate(sentences):
-            for t_id, token in enumerate(sentence):
-                print(token, file=tokenized)
-            print(file=tokenized)
+    return lines
 
-            if tagged:
-                suc_tags = suc_tagger.tag(sentence)
-                if lemmatizer:
-                    lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-                    ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
-                    for row in zip(sentence, suc_tags, ud_tags, lemmas):
-                        print("\t".join(row), file=tagged)
-                else:
-                    for token, tag in zip(sentence, suc_tags):
-                        print(token + '\t' + tag, file=tagged)
-                print(file=tagged)
+def parse(options, filename, tmp_dir):
+    tagged_filename = output_filename(tmp_dir, filename, "tag")
+    tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
+    parsed_filename = output_filename(tmp_dir, filename, "conll")
+    log_filename = output_filename(tmp_dir, filename, "log")
 
-        if tokenized: tokenized.close()
-        if tagged: tagged.close()
+    # The parser command line is dependent on the input and
+    # output files, so we build that one for each data file
+    parser_cmdline = ["java", "-Xmx2000m",
+                      "-jar", os.path.expanduser(options.malt),
+                      "-m", "parse",
+                      "-i", tagged_conll_filename,
+                      "-o", parsed_filename,
+                      "-w", tmp_dir,
+                      "-c", os.path.basename(options.parsing_model)]
 
-        if options.tokenized:
-            shutil.copy(tokenized_filename, options.output_dir)
+    # Conversion from .tag file to tagged.conll (input format for the parser)
+    tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
+    tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"), tagged_conll_file)
+    tagged_conll_file.close()
 
-        if options.tagged:
-            shutil.copy(tagged_filename, options.output_dir)
+    # Run the parser
+    with open(log_filename, "w", encoding="utf-8") as log_file:
+        returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
 
-        #########
-        # Parsing
+    if returncode:
+        sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
 
-        if options.parsed:
-            # Conversion from .tag file to tagged.conll (input format for the parser)
-            tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
-            tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"),
-                                   tagged_conll_file)
-            tagged_conll_file.close()
+    return parsed_filename
 
-            # Run the parser
-            returncode = Popen(parser_cmdline,
-                               stdout=log_file, stderr=log_file).wait()
-            if returncode:
-                sys.exit("Parsing failed! Log file may contain "
-                         "more information: %s" % log_filename)
+def write_to_file(file, lines):
+    for line in lines:
+        print(line, file=file)
+    print(file=file)
 
-            if options.parsed:
-                shutil.copy(parsed_filename, options.output_dir)
+def write_to_output(options, tokenized_filename, tagged_filename, parsed_filename):
+    if options.tokenized:
+        shutil.copy(tokenized_filename, options.output_dir)
 
-        # end: if options.parsed
+    if options.tagged:
+        shutil.copy(tagged_filename, options.output_dir)
 
-        log_file.close()
+    if options.parsed:
+        shutil.copy(parsed_filename, options.output_dir)
 
-        print("done.", file=sys.stderr)
-
-
-    ##########
-    # Clean up
-
+def cleanup(options, tmp_dir):
     if not options.no_delete:
         shutil.rmtree(tmp_dir)
     else:
         print("Leaving working directory as is: %s" % tmp_dir, file=sys.stderr)
+
+def output_filename(tmp_dir, filename, suffix):
+    directory, _ = os.path.splitext(filename)
+    basename = os.path.basename(directory)
+    return os.path.join(tmp_dir, "%s.%s" % (basename, suffix))
+
+if __name__ == '__main__':
+    main()
