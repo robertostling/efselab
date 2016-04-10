@@ -15,103 +15,8 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 import os
 import sys
 from tokenize import build_sentences
-
-def tagged_to_tagged_conll(tagged, tagged_conll):
-    """Read a .tag file and write to the corresponding .tagged.conll file"""
-    s_id = 1
-    t_id = 1
-    for line in tagged:
-        line = line.strip()
-        if not line:
-            print(line, file=tagged_conll)
-            s_id += 1
-            t_id = 1
-            continue
-        fields = line.split('\t')
-        token = fields[0]
-        tag = fields[1]
-        ud_tag = tag if len(fields) < 4 else fields[2]
-        lemma = '_' if len(fields) < 4 else fields[3]
-        ud_morph = '_'
-        if "|" in tag:
-            pos, morph = tag.split("|", 1)
-            ufeats = []
-            feats = morph.split("|")
-            for f in feats:
-                if "/" in f:
-                    uf = "" # don't include feats with multiple options in the UD feats
-                else:
-                    uf = suc2ufeat[f]
-                if uf != "":
-                    ufeats = ufeats + suc2ufeat[f]
-            if "VerbForm=Fin" in ufeats and not "Mood=Imp" in ufeats and not "Mood=Sub" in ufeats:
-                ufeats = ufeats + ["Mood=Ind"]
-            if pos in ["HA", "HD", "HP", "HS"]:
-                ufeats = ufeats + ["PronType=Int,Rel"]
-            if pos in ["HS", "PS"]:
-                ufeats = ufeats + ["Poss=Yes"] # Test this!
-            ufeat_string = "|".join(sorted(ufeats))
-            if ufeat_string != "":
-                ud_morph = ufeat_string
-        else:
-            pos = tag
-            morph = "_"
-        print("%s\t%s\t%s\t%s\t%s\t%s" % (
-            "%d" % t_id,
-            token,
-            lemma,
-            ud_tag,
-            tag,
-            ud_morph), file=tagged_conll)
-        t_id += 1
-
-suc2ufeat = {
-    "AKT": ["Voice=Act"],
-    "DEF": ["Definite=Def"],
-    "GEN": ["Case=Gen"],
-    "IND": ["Definite=Ind"],
-    "INF": ["VerbForm=Inf"],
-    "IMP": ["VerbForm=Fin", "Mood=Imp"],
-    "KOM": ["Degree=Cmp"],
-    "KON": ["Mood=Sub"],
-    "NEU": ["Gender=Neut"],
-    "NOM": ["Case=Nom"],
-    "MAS": ["Gender=Masc"],
-    "OBJ": ["Case=Acc"],
-    "PLU": ["Number=Plur"],
-    "POS": ["Degree=Pos"],
-    "PRF": ["VerbForm=Part", "Tense=Past"],
-    "PRT": ["VerbForm=Fin", "Tense=Past"],
-    "PRS": ["VerbForm=Fin", "Tense=Pres"],
-    "SFO": ["Voice=Pass"],
-    "SIN": ["Number=Sing"],
-    "SMS": [],
-    "SUB": ["Case=Nom"],
-    "SUP": ["VerbForm=Sup"],
-    "SUV": ["Degree=Sup"],
-    "UTR": ["Gender=Com"],
-    "AN": [],
-    "-": [],
-}
-
-def ud_verb_heuristics(ud_tags, tokens, lemmas):
-    """Heuristics to improve accuracy of UD tags, return modified ud_tags"""
-    ud_tags = list(ud_tags)
-    n = len(ud_tags)
-    for i in range(n):
-        if ud_tags[i] == 'AUX' and lemmas[i] != 'vara':
-            for j in range(i+1, n):
-                if ud_tags[j] in ('AUX', 'VERB'):
-                    # If followed by AUX or VERB, do nothing
-                    break
-                if (ud_tags[j] in ('SCONJ', 'PUNCT')) \
-                        or tokens[j].lower() == 'som' or j == n-1:
-                    # If no AUX/VERB before SCONJ, PUNCT, "som" or end of
-                    # sentence, change to VERB
-                    ud_tags[i] = 'VERB'
-                    break
-    return ud_tags
-
+from conll import tagged_to_tagged_conll
+from tagger import SucTagger, UDTagger
 
 if __name__ == '__main__':
     import fileinput
@@ -199,13 +104,10 @@ if __name__ == '__main__':
         sys.exit("Can't find parsing model: %s" % options.parsing_model+".mco")
 
     if options.tagged or options.parsed:
-        import suc
-        with open(options.tagging_model, 'rb') as f:
-            tagger_weights = f.read()
+        suc_tagger = SucTagger(options.tagging_model)
+
         if options.lemmatized:
-            import udt_suc_sv
-            with open(options.ud_tagging_model, 'rb') as f:
-                ud_tagger_weights = f.read()
+            ud_tagger = UDTagger(options.ud_tagging_model)
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -279,20 +181,16 @@ if __name__ == '__main__':
             for t_id, token in enumerate(sentence):
                 print(token, file=tokenized)
             print(file=tokenized)
+
             if tagged:
-                tags = suc.tag(tagger_weights, sentence)
+                suc_tags = suc_tagger.tag(sentence)
                 if lemmatizer:
-                    lemmas = [lemmatizer.predict(token, tag)
-                              for token, tag in zip(sentence, tags)]
-                    suc_sentence = [
-                            (lemma, tag[:2], tag)
-                            for lemma, tag in zip(lemmas, tags)]
-                    ud_tags = udt_suc_sv.tag(ud_tagger_weights, suc_sentence)
-                    ud_tags = ud_verb_heuristics(ud_tags, sentence, lemmas)
-                    for row in zip(sentence, tags, ud_tags, lemmas):
-                        print('\t'.join(row), file=tagged)
+                    lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
+                    ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
+                    for row in zip(sentence, suc_tags, ud_tags, lemmas):
+                        print("\t".join(row), file=tagged)
                 else:
-                    for token, tag in zip(sentence, tags):
+                    for token, tag in zip(sentence, suc_tags):
                         print(token + '\t' + tag, file=tagged)
                 print(file=tagged)
 
