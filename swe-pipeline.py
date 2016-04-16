@@ -138,10 +138,11 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
 
+    sentences = run_tokenization(options, filename)
+    annotated_sentences = []
+
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
             open(tagged_filename, "w", encoding="utf-8") as tagged:
-
-        sentences = run_tokenization(options, filename)
 
         # Run only one pass over sentences for writing to both files
         for sentence in sentences:
@@ -149,6 +150,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
             if options.tagged or options.parsed:
                 lemmas, ud_tags_list, suc_tags_list = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
+                annotated_sentences.append(zip(sentence, lemmas, ud_tags_list, suc_tags_list))
 
                 ud_tag_list = [ud_tags[:ud_tags.find("|")] for ud_tags in ud_tags_list]
                 if lemmas and ud_tags_list:
@@ -160,7 +162,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
     parsed_filename = ""
     if options.parsed:
-        parsed_filename = parse(options, filename, tmp_dir)
+        parsed_filename = parse(options, filename, annotated_sentences, tmp_dir)
 
     write_to_output(options, tokenized_filename, tagged_filename, parsed_filename)
 
@@ -191,8 +193,7 @@ def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
 
     return lemmas, ud_tags_list, suc_tags_list
 
-def parse(options, filename, tmp_dir):
-    tagged_filename = output_filename(tmp_dir, filename, "tag")
+def parse(options, filename, annotated_sentences, tmp_dir):
     tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
     parsed_filename = output_filename(tmp_dir, filename, "conll")
     log_filename = output_filename(tmp_dir, filename, "log")
@@ -209,7 +210,7 @@ def parse(options, filename, tmp_dir):
 
     # Conversion from .tag file to tagged.conll (input format for the parser)
     tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
-    tagged_to_tagged_conll(open(tagged_filename, "r", encoding="utf-8"), tagged_conll_file)
+    tagged_to_tagged_conll(annotated_sentences, tagged_conll_file)
     tagged_conll_file.close()
 
     # Run the parser
