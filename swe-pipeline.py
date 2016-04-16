@@ -148,8 +148,15 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
             write_to_file(tokenized, sentence)
 
             if options.tagged or options.parsed:
-                tagged_sentence = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
-                write_to_file(tagged, tagged_sentence)
+                lemmas, ud_tags_list, suc_tags_list = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
+
+                ud_tag_list = [ud_tags[:ud_tags.find("|")] for ud_tags in ud_tags_list]
+                if lemmas and ud_tags_list:
+                    lines = ["\t".join(line) for line in zip(sentence, suc_tags_list, ud_tag_list, lemmas)]
+                else:
+                    lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags_list)]
+
+                write_to_file(tagged, lines)
 
     if options.parsed:
         parsed_filename = parse(options, filename, tmp_dir)
@@ -173,16 +180,15 @@ def run_tokenization(options, filename):
     return sentences
 
 def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
+    lemmas = []
+    ud_tags_list = []
     suc_tags_list = suc_tagger.tag(sentence)
+
     if lemmatizer:
         lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags_list)]
         ud_tags_list = ud_tagger.tag(sentence, lemmas, suc_tags_list)
-        ud_tag_list = [ud_tags[:ud_tags.find("|")] for ud_tags in ud_tags_list]
-        lines = ["\t".join(line) for line in zip(sentence, suc_tags_list, ud_tag_list, lemmas)]
-    else:
-        lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags_list)]
 
-    return lines
+    return lemmas, ud_tags_list, suc_tags_list
 
 def parse(options, filename, tmp_dir):
     tagged_filename = output_filename(tmp_dir, filename, "tag")
