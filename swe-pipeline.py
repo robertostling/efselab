@@ -176,8 +176,9 @@ def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
     suc_tags = suc_tagger.tag(sentence)
     if lemmatizer:
         lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags)]
-        ud_tags = ud_tagger.tag(sentence, lemmas, suc_tags)
-        lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tags, lemmas)]
+        ud_tags_list = ud_tagger.tag(sentence, lemmas, suc_tags)
+        ud_tag_list = [ud_tags[:ud_tags.find("|")] for ud_tags in ud_tags_list]
+        lines = ["\t".join(line) for line in zip(sentence, suc_tags, ud_tag_list, lemmas)]
     else:
         lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags)]
 
