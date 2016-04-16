@@ -158,6 +158,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
 
                 write_to_file(tagged, lines)
 
+    parsed_filename = ""
     if options.parsed:
         parsed_filename = parse(options, filename, tmp_dir)
 
