@@ -41,38 +41,45 @@ def tagged_to_tagged_conll(tagged, tagged_conll):
             continue
         fields = line.split('\t')
         token = fields[0]
-        tag = fields[1]
-        ud_tag = tag if len(fields) < 4 else fields[2]
+        suc_tags = fields[1]
+        ud_tag = suc_tags if len(fields) < 4 else fields[2]
         lemma = '_' if len(fields) < 4 else fields[3]
-        ud_morph = '_'
-        if "|" in tag:
-            pos, morph = tag.split("|", 1)
-            ufeats = []
-            feats = morph.split("|")
-            for f in feats:
-                if "/" in f:
-                    uf = ""  # don't include feats with multiple options in the UD feats
-                else:
-                    uf = suc2ufeat[f]
-                if uf != "":
-                    ufeats = ufeats + suc2ufeat[f]
-            if "VerbForm=Fin" in ufeats and "Mood=Imp" not in ufeats and "Mood=Sub" not in ufeats:
-                ufeats = ufeats + ["Mood=Ind"]
-            if pos in ["HA", "HD", "HP", "HS"]:
-                ufeats = ufeats + ["PronType=Int,Rel"]
-            if pos in ["HS", "PS"]:
-                ufeats = ufeats + ["Poss=Yes"]  # Test this!
-            ufeat_string = "|".join(sorted(ufeats))
-            if ufeat_string != "":
-                ud_morph = ufeat_string
-        else:
-            pos = tag
-            morph = "_"
+        ud_features = '_'
+
+        if "|" not in suc_tags:
+            print("%s\t%s\t%s\t%s\t%s\t%s" % (
+                "%d" % t_id,
+                token,
+                lemma,
+                ud_tag,
+                suc_tags,
+                ud_features), file=tagged_conll)
+            t_id += 1
+            continue
+
+        suc_tag, suc_features = suc_tags.split("|", 1)
+        ud_feature_list = []
+        for suc_feature in suc_features.split("|"):
+            # Don't include suc_features with multiple options in the UD suc_features
+            if "/" not in suc_feature:
+                ud_feature_list += suc2ufeat[suc_feature]
+
+        if "VerbForm=Fin" in ud_feature_list and "Mood=Imp" not in ud_feature_list and "Mood=Sub" not in ud_feature_list:
+            ud_feature_list += ["Mood=Ind"]
+
+        if suc_tag in ["HA", "HD", "HP", "HS"]:
+            ud_feature_list += ["PronType=Int,Rel"]
+
+        if suc_tag in ["HS", "PS"]:
+            ud_feature_list += ["Poss=Yes"]  # Test this!
+
+        ud_features = "|".join(sorted(ud_feature_list)) or "_"
+
         print("%s\t%s\t%s\t%s\t%s\t%s" % (
             "%d" % t_id,
             token,
             lemma,
             ud_tag,
-            tag,
-            ud_morph), file=tagged_conll)
+            suc_tags,
+            ud_features), file=tagged_conll)
         t_id += 1
