@@ -154,7 +154,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
                 if lemmas and ud_tags_list:
                     lines = ["\t".join(line) for line in zip(sentence, suc_tags_list, ud_tag_list, lemmas)]
                 else:
-                    lines = [token + '\t' + tag for token, tag in zip(sentence, suc_tags_list)]
+                    lines = ["\t".join(line) for line in zip(sentence, suc_tags_list)]
 
                 write_to_file(tagged, lines)
 
