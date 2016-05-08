@@ -12,8 +12,7 @@ parser.add_argument('--cflags', dest='cflags', type=str,
     help='C compiler flags')
 parser.add_argument('--n-train-fields', dest='n_train_fields',
     type=int, default=2,
-    help='number of tab-separated fields in training data (note: some '
-         'build_*.py files set their own value)')
+    help='number of tab-separated fields in training data (default: 2)')
 parser.add_argument('--beam-size', dest='beam_size', type=int, default=4,
     help='beam size of the decoder (recommended interval: 1--4)')
 parser.add_argument('--hash-bits', dest='feat_hash_bits',

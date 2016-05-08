@@ -12,7 +12,7 @@ from tools import read_dict
 
 import sys
 
-args.n_train_fields = 4
+assert args.n_train_fields == 4
 
 config = Configuration('suc_ne', args)
 
