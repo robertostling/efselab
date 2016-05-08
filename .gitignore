@@ -9,11 +9,18 @@ lemmatize.so
 pysuc.c
 pyudt_en.c
 pyudt_suc_sv.c
-suc.so
 
 swe-pipeline
 swe-pipeline.tar.gz
 
+*.bin
+
+suc
+suc.c
+suc.so
+suc_ne
+suc_ne.c
+suc_ne.so
 udt_en
 udt_en.c
 udt_en.so
