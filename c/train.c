@@ -79,7 +79,8 @@ static int train(
                 buf, &buf_len);
         if (rv < 0) {
             if (!feof(train_file)) {
-                fprintf(stderr, "Error at %ld!\n", ftell(train_file));
+                fprintf(stderr, "Error at %s:%ld (bytes)!\n",
+                        train_filename, ftell(train_file));
                 return 1;
             }
             rewind(train_file);
@@ -110,7 +111,8 @@ static int train(
                     train_file, field_buf, field_len, N_TRAIN_FIELDS, &n_items,
                     buf, &buf_len);
             if (rv < 0) {
-                fprintf(stderr, "Error at %ld!\n", ftell(train_file));
+                fprintf(stderr, "Error at %s:%ld (bytes)!\n",
+                        train_filename, ftell(train_file));
                 return 1;
             }
 

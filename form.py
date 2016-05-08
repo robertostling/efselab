@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 import hashlib, math
 
@@ -300,7 +301,11 @@ static void beam_search(
         label max_tag = 0;
 ''')
 
-        if not normalize_idx is None:
+        if normalize_idx is None:
+            print('WARNING: no normalize(TextField(n)) for tag dictionary '
+                  'key, generated files may be incorrect',
+                  file=sys.stderr)
+        else:
             f.write('''
         if (use_lexicon) {
             size_t j;
@@ -385,7 +390,11 @@ static void beam_search(
         # TODO: make a struct above, instead of 3 arrays
         # TODO: special cases for first and last step of main loop
 
-        if not normalize_idx is None:
+        if normalize_idx is None:
+            print('WARNING: no normalize(TextField(n)) for tag dictionary '
+                  'key, generated files may be incorrect',
+                  file=sys.stderr)
+        else:
             f.write('''
         if (use_lexicon) {
             size_t j;
