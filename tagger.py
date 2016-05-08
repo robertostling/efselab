@@ -1,5 +1,6 @@
 import udt_suc_sv
 import suc
+import suc_ne
 
 # Tags a sentence with SUC tags based on a trained model
 class SucTagger():
@@ -11,6 +12,18 @@ class SucTagger():
     def tag(self, sentence):
         tags_list = suc.tag(self.tagger_weights, sentence)
         return tags_list
+
+# Tags a sentence with SUC-style named entity tags based on a trained model
+class SucNETagger():
+
+    def __init__(self, tagging_model):
+        with open(tagging_model, 'rb') as f:
+            self.tagger_weights = f.read()
+
+    def tag(self, sentence):
+        tags_list = suc_ne.tag(self.tagger_weights, sentence)
+        return tags_list
+
 
 # Tags a sentence with UD tags based on a model trained on SUC tags
 class UDTagger():

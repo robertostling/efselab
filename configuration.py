@@ -32,7 +32,7 @@ class Configuration:
         self.tagset             = None
         self.lexicon            = None
         self.feature_set        = None
-        self.wclexicon          = None
+        self.wclexicons         = []
 
         self.beam_size          = beam_size
         self.partial_hash_bits  = partial_hash_bits
@@ -105,7 +105,7 @@ typedef uint32_t   label;
 
         self.tagset.c_emit(f)
         if self.lexicon: self.lexicon.c_emit(f)
-        if self.wclexicon: self.wclexicon.c_emit(f)
+        for wcl in self.wclexicons: wcl.c_emit(f)
         self.feature_set.c_emit(f)
 
         c_include('seq.c')

@@ -15,7 +15,7 @@ from subprocess import Popen
 
 from conll import tagged_to_tagged_conll
 from lemmatize import SUCLemmatizer
-from tagger import SucTagger, UDTagger
+from tagger import SucTagger, SucNETagger, UDTagger
 from tokenize import build_sentences
 
 __authors__ = """
@@ -28,6 +28,7 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 MODEL_DIR = os.path.join(SCRIPT_DIR, "swe-pipeline")
 TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
+NER_MODEL = os.path.join(MODEL_DIR, "suc-ne.bin")
 UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
 LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
 PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
@@ -54,8 +55,10 @@ def parse_options():
                   help="Also lemmatize the tagged output file(s) (*.tag)")
     op.add_option("--parsed", dest="parsed", action="store_true",
                   help="Generate parsed output file(s) (*.conll)")
+    op.add_option("--ner", dest="ner", action="store_true",
+                  help="Generate named entity file(s) (*.ne)")
     op.add_option("--all", dest="all", action="store_true",
-                  help="Equivalent to --tokenized --tagged --lemmatized --parsed")
+                  help="Equivalent to --tokenized --tagged --lemmatized --ner --parsed")
     op.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
@@ -65,6 +68,9 @@ def parse_options():
     op.add_option("-l", "--lemmatization-model", dest="lemmatization_model",
                   default=LEMMATIZATION_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
+    op.add_option("-n", "--ner-model", dest="ner_model",
+                  default=NER_MODEL, metavar="FILENAME",
+                  help="Model for named entity recognizer")
     op.add_option("-p", "--parsing-model", dest="parsing_model",
                   default=PARSING_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
@@ -80,9 +86,10 @@ def validate_options(options, args):
         options.tagged = True
         options.lemmatized = True
         options.parsed = True
+        options.ner = True
 
     if not (options.tokenized or options.tagged or options.parsed):
-        sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized and/or --parsed (or --all)")
+        sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized --ner and/or --parsed (or --all)")
 
     # If no target directory was given: write error message and exit.
     if not options.output_dir:
@@ -99,6 +106,8 @@ def validate_options(options, args):
         sys.exit("Can't find tagging model: %s" % options.tagging_model)
     if options.lemmatized and not options.tagged:
         sys.exit("Can't lemmatize without tagging.")
+    if options.ner and not (options.tagged and options.lemmatized):
+        sys.exit("Can't do NER without tagging and lemmatization.")
     if options.lemmatized and not os.path.exists(options.lemmatization_model):
         sys.exit("Can't find lemmatizer model file %s." % options.lemmatization_model)
     if options.parsed and not os.path.exists(jarfile):
@@ -107,13 +116,17 @@ def validate_options(options, args):
         sys.exit("Can't find parsing model: %s" % options.parsing_model + ".mco")
 
 def run_pipeline(options, args):
+    suc_ne_tagger = None
     suc_tagger = None
     ud_tagger = None
-    if options.tagged or options.parsed:
+    if options.tagged or options.ner or options.parsed:
         suc_tagger = SucTagger(options.tagging_model)
 
         if options.lemmatized:
             ud_tagger = UDTagger(options.ud_tagging_model)
+
+    if options.ner:
+        suc_ne_tagger = SucNETagger(options.ner_model)
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -128,43 +141,61 @@ def run_pipeline(options, args):
 
     # Process each input file
     for filename in args:
-        process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger)
+        process_file(options, filename, tmp_dir, lemmatizer, suc_tagger,
+                     ud_tagger, suc_ne_tagger)
 
     cleanup(options, tmp_dir)
 
-def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger):
+def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger,
+                 ud_tagger, suc_ne_tagger):
     print("Processing %s..." % (filename), file=sys.stderr)
 
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
+    ner_filename = output_filename(tmp_dir, filename, "ne")
 
     sentences = run_tokenization(options, filename)
     annotated_sentences = []
 
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
-            open(tagged_filename, "w", encoding="utf-8") as tagged:
+            open(tagged_filename, "w", encoding="utf-8") as tagged, \
+            open(ner_filename, "w", encoding="utf-8") as ner:
 
         # Run only one pass over sentences for writing to both files
         for sentence in sentences:
             write_to_file(tokenized, sentence)
 
-            if options.tagged or options.parsed:
-                lemmas, ud_tags_list, suc_tags_list = run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger)
-                annotated_sentences.append(zip(sentence, lemmas, ud_tags_list, suc_tags_list))
+            if options.tagged or options.parsed or options.ner:
+                lemmas, ud_tags_list, suc_tags_list, suc_ne_list = \
+                        run_tagging_and_lemmatization(
+                                sentence, lemmatizer, suc_tagger, ud_tagger,
+                                suc_ne_tagger)
+                annotated_sentences.append(
+                        zip(sentence, lemmas, ud_tags_list, suc_tags_list))
 
-                ud_tag_list = [ud_tags[:ud_tags.find("|")] for ud_tags in ud_tags_list]
+                ud_tag_list = [ud_tags[:ud_tags.find("|")]
+                               for ud_tags in ud_tags_list]
                 if lemmas and ud_tags_list:
-                    lines = ["\t".join(line) for line in zip(sentence, suc_tags_list, ud_tag_list, lemmas)]
+                    lines = ["\t".join(line)
+                             for line in zip(
+                                 sentence, suc_tags_list, ud_tag_list, lemmas)]
                 else:
-                    lines = ["\t".join(line) for line in zip(sentence, suc_tags_list)]
+                    lines = ["\t".join(line)
+                             for line in zip(sentence, suc_tags_list)]
 
                 write_to_file(tagged, lines)
+
+                if not suc_ne_tagger is None:
+                    ner_lines = ["\t".join(line)
+                                 for line in zip(sentence, suc_ne_list)]
+                    write_to_file(ner, ner_lines)
 
     parsed_filename = ""
     if options.parsed:
         parsed_filename = parse(options, filename, annotated_sentences, tmp_dir)
 
-    write_to_output(options, tokenized_filename, tagged_filename, parsed_filename)
+    write_to_output(options, tokenized_filename, tagged_filename,
+                    parsed_filename, ner_filename)
 
     print("done.", file=sys.stderr)
 
@@ -182,7 +213,8 @@ def run_tokenization(options, filename):
 
     return sentences
 
-def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
+def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger,
+                                  suc_ne_tagger):
     lemmas = []
     ud_tags_list = []
     suc_tags_list = suc_tagger.tag(sentence)
@@ -190,8 +222,13 @@ def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger):
     if lemmatizer:
         lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags_list)]
         ud_tags_list = ud_tagger.tag(sentence, lemmas, suc_tags_list)
+        if not suc_ne_tagger is None:
+            suc_ne_list = suc_ne_tagger.tag(
+                    list(zip(sentence, lemmas, suc_tags_list)))
+        else:
+            suc_ne_list = [None]*len(sentence)
 
-    return lemmas, ud_tags_list, suc_tags_list
+    return lemmas, ud_tags_list, suc_tags_list, suc_ne_list
 
 def parse(options, filename, annotated_sentences, tmp_dir):
     tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
@@ -227,7 +264,8 @@ def write_to_file(file, lines):
         print(line, file=file)
     print(file=file)
 
-def write_to_output(options, tokenized_filename, tagged_filename, parsed_filename):
+def write_to_output(options, tokenized_filename, tagged_filename,
+                    parsed_filename, ner_filename):
     if options.tokenized:
         shutil.copy(tokenized_filename, options.output_dir)
 
@@ -236,6 +274,9 @@ def write_to_output(options, tokenized_filename, tagged_filename, parsed_filenam
 
     if options.parsed:
         shutil.copy(parsed_filename, options.output_dir)
+
+    if options.ner:
+        shutil.copy(ner_filename, options.output_dir)
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:

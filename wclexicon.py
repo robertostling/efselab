@@ -6,7 +6,7 @@ from form import Lookup
 
 class WCLexicon:
     def __init__(self, name, items, config):
-        config.wclexicon = self
+        config.wclexicons.append(self)
 
         self.items = items
         self.lower = False

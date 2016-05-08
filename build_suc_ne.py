@@ -32,7 +32,7 @@ lemma_field     = 1
 suc_full_field  = 2
 tag_field       = 3
 
-# TODO: read name dictionaries!
+Names = WCLexicon.from_file('names', 'suc-data/names.txt', config)
 
 WC = WCLexicon.from_file('brown', 'suc-data/swe-brown100.txt', config)
 
@@ -58,6 +58,11 @@ last_word       = TextField(text_field, -1)
 next_word       = TextField(text_field, 1)
 next_next_word  = TextField(text_field, 2)
 
+# Use name lexicon
+this_name       = Names.lookup(this_lemma)
+last_name       = Names.lookup(last_lemma)
+next_name       = Names.lookup(next_lemma)
+
 # Use case-sensitive word clusters
 this_wc         = WC.lookup(this_word)
 last_wc         = WC.lookup(last_word)
@@ -72,6 +77,12 @@ fs = FeatureSet([
         (this_tag, last_pos),
         (this_tag, this_pos),
         (this_tag, next_pos),
+
+        (this_tag, last_name),
+        (this_tag, this_name),
+        (this_tag, next_name),
+        (this_tag, this_name, last_name),
+        (this_tag, this_name, next_name),
 
         (this_tag, last_wc),
         (this_tag, this_wc),
