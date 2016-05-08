@@ -194,6 +194,7 @@ static int train(
         weights = folded_weights;
         weights_len /= 2;
         rewind(tune_file);
+        if (tune_error < best_error) best_error = tune_error;
     }
 
     fclose(tune_file);
