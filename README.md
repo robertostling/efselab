@@ -72,10 +72,11 @@ pipeline (originally using hunpos for POS tagging) created at
 Uppsala University by Filip Salomonsson. It can do the following:
  
  * Tokenization (using a Python tokenizer by Filip Salomonsson)
- * POS tagging (using `efselab` with a SUC model)
+ * POS tagging (using `efselab` with a SUC + SIC model)
  * Conversion to Universal PoS tags (using `efselab` trained on Universal
    Dependencies data plus some postprocessing heuristics by Aaron Smith)
  * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
+ * Named Entity Recognition (using `efselab` with a SUC + SIC model)
  * Dependency prasing (using MaltParser by Joakim Nivre et al.)
 
 To start using the pipeline, the easiest way is to download and unpack the
@@ -87,6 +88,7 @@ Remember to first run `make` to compile the lemmatizer:
     wget http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz
     tar xvzf swe-pipeline.tar.gz
     python3 build_suc.py --skip-generate --python
+    python3 build_suc_ne.py --skip-generate --python
 
 Next, build the SUC-to-UD conversion model and train it (data is included in
 this repository):
