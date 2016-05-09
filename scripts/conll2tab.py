@@ -8,7 +8,7 @@
 """
 cat /home/corpora/SUC3.0/corpus/conll/blogs.conll /home/corpora/SUC3.0/corpus/conll/suc-train.conll | python3 conll2tab.py ne >../suc-data/suc-blogs-ne-train.tab
 cat /home/corpora/SUC3.0/corpus/conll/suc-dev.conll | python3 conll2tab.py ne >../suc-data/suc-ne-dev.tab
-cat /home/corpora/SUC3.0/corpus/conll/suc-train.conll | python3 conll2tab.py ne >../suc-data/suc-ne-train.tab
+cat /home/corpora/SUC3.0/corpus/conll/suc-test.conll | python3 conll2tab.py ne >../suc-data/suc-ne-test.tab
 """
 
 import sys

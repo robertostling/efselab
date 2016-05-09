@@ -88,7 +88,8 @@ def validate_options(options, args):
         options.parsed = True
         options.ner = True
 
-    if not (options.tokenized or options.tagged or options.parsed):
+    if not (   options.tokenized or options.tagged or options.parsed
+            or options.ner):
         sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized --ner and/or --parsed (or --all)")
 
     # If no target directory was given: write error message and exit.
