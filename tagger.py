@@ -72,7 +72,8 @@ class UDTagger():
         ud_tags = list(ud_tags)
         n = len(ud_tags)
         for i in range(n):
-            if ud_tags[i] == 'AUX' and lemmas[i] != 'vara':
+#            if ud_tags[i] == 'AUX' and lemmas[i] != 'vara':
+            if ud_tags[i] == 'AUX':
                 for j in range(i + 1, n):
                     if ud_tags[j] in ('AUX', 'VERB'):
                         # If followed by AUX or VERB, do nothing
