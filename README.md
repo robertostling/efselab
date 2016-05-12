@@ -87,8 +87,9 @@ Remember to first run `make` to compile the lemmatizer:
     make
     wget http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz
     tar xvzf swe-pipeline.tar.gz
-    python3 build_suc.py --skip-generate --python
-    python3 build_suc_ne.py --skip-generate --python
+    python3 build_suc.py --skip-generate --python --n-train-fields 2
+    python3 build_suc_ne.py --skip-generate --python --n-train-fields 4
+
 
 Next, build the SUC-to-UD conversion model and train it (data is included in
 this repository):
