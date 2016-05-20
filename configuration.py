@@ -13,7 +13,7 @@ class Configuration:
         n_tag_fields = None
         use_unicode = True
         cc = args.cc
-        cflags = args.cflags.split()
+        cflags = args.cflags.replace(r'\-', '-').split()
 
         self.skip_compile = args.skip_compile
         self.skip_generate = args.skip_generate
