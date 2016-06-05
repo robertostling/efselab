@@ -7,6 +7,7 @@ lemmatize.c
 lemmatize.so
 
 pysuc.c
+pysuc_ne.c
 pyudt_en.c
 pyudt_suc_sv.c
 
