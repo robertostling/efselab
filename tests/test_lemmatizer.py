@@ -2,7 +2,7 @@ import lemmatize
 import unittest
 import tempfile
 
-class TestSucTagger(unittest.TestCase):
+class TestLemmatizer(unittest.TestCase):
     def _build_lemmatizer(self, rules):
         lemmatizer = lemmatize.SUCLemmatizer()
         with tempfile.NamedTemporaryFile() as file:
