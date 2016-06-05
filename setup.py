@@ -14,4 +14,3 @@ setup(
     name='Fast hashing',
     ext_modules=cythonize('lemmatize.pyx') + [fasthash],
 )
-
