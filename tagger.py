@@ -1,6 +1,7 @@
 import udt_suc_sv
 import suc
 import suc_ne
+import collections
 
 # Tags a sentence with SUC tags based on a trained model
 class SucTagger():
@@ -60,12 +61,20 @@ class UDTagger():
         with open(tagging_model, 'rb') as f:
             self.tagger_weights = f.read()
 
+    def _is_nonstring_iterable(self, value):
+        if not isinstance(value, collections.Iterable) or isinstance(value, str):
+            raise TypeError("Argument is not of the correct type")
+
     def tag(self, sentence, lemmas, suc_tags_list):
+        self._is_nonstring_iterable(sentence)
+        self._is_nonstring_iterable(lemmas)
+        self._is_nonstring_iterable(suc_tags_list)
+
         suc_sentence = [(lemma, tag[:2], tag) for lemma, tag in zip(lemmas, suc_tags_list)]
         tag_list = udt_suc_sv.tag(self.tagger_weights, suc_sentence)
         tag_list = self.ud_verb_heuristics(tag_list, sentence, lemmas)
         features = self.ud_features(suc_tags_list)
-        return ["|".join(t) for t in zip(tag_list, features)]
+        return tuple(["|".join(t) for t in zip(tag_list, features)])
 
     def ud_verb_heuristics(self, ud_tags, tokens, lemmas):
         """Heuristics to improve accuracy of UD tags, return modified ud_tags"""
