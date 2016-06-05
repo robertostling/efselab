@@ -5,3 +5,5 @@ clean:
 	python3 setup.py clean
 	rm -f *.so
 
+run_tests:
+	python -m unittest discover
