@@ -12,6 +12,22 @@ LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
 PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
 MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
+class AttrDict:
+    def __init__(self, d):
+        self.__dict__ = d
+
+ERROR_MESSAGES = AttrDict({
+    "no_action": "Nothing to do! Please use --tokenized, --tagged, --lemmatized --ner and/or --parsed (or --all)",
+    "no_target": "No target directory specified. Use --output-dir=DIR",
+    "no_filename": "Please specify at least one filename as input.",
+    "not_found_tagging_model": "Can't find tagging model: %s",
+    "lemmatized_without_tagged": "Can't lemmatize without tagging.",
+    "ner_without_tagged_and_lemmatized": "Can't do NER without tagging and lemmatization.",
+    "not_found_lemmatizer_model": "Can't find lemmatizer model file %s.",
+    "not_found_maltparser": "Can't find MaltParser jar file %s.",
+    "not_found_parsing_model": "Can't find parsing model: %s",
+})
+
 def create_parser():
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
@@ -62,28 +78,33 @@ def validate_options(options, args):
         options.ner = True
 
     if not (options.tokenized or options.tagged or options.parsed or options.ner):
-        sys.exit("Nothing to do! Please use --tokenized, --tagged, --lemmatized --ner and/or --parsed (or --all)")
+        sys.exit(ERROR_MESSAGES.no_action)
 
     # If no target directory was given: write error message and exit.
     if not options.output_dir:
-        sys.exit("No target directory specified. Use --output-dir=DIR")
+        sys.exit(ERROR_MESSAGES.no_target)
 
     if not args:
-        sys.exit("Please specify at least one filename as input.")
+        sys.exit(ERROR_MESSAGES.no_filename)
 
     # Set up (part of) command lines
     jarfile = os.path.expanduser(options.malt)
 
     # Make sure we have all we need
     if options.tagged and not os.path.exists(options.tagging_model):
-        sys.exit("Can't find tagging model: %s" % options.tagging_model)
+        sys.exit(ERROR_MESSAGES.not_found_tagging_model % options.tagging_model)
+
     if options.lemmatized and not options.tagged:
-        sys.exit("Can't lemmatize without tagging.")
+        sys.exit(ERROR_MESSAGES.lemmatized_without_tagged)
+
     if options.ner and not (options.tagged and options.lemmatized):
-        sys.exit("Can't do NER without tagging and lemmatization.")
+        sys.exit(ERROR_MESSAGES.ner_without_tagged_and_lemmatized)
+
     if options.lemmatized and not os.path.exists(options.lemmatization_model):
-        sys.exit("Can't find lemmatizer model file %s." % options.lemmatization_model)
+        sys.exit(ERROR_MESSAGES.not_found_lemmatizer_model % options.lemmatization_model)
+
     if options.parsed and not os.path.exists(jarfile):
-        sys.exit("Can't find MaltParser jar file %s." % jarfile)
+        sys.exit(ERROR_MESSAGES.not_found_maltparser % jarfile)
+
     if options.parsed and not os.path.exists(options.parsing_model + ".mco"):
-        sys.exit("Can't find parsing model: %s" % options.parsing_model + ".mco")
+        sys.exit(ERROR_MESSAGES.not_found_parsing_model % (options.parsing_model + ".mco"))
