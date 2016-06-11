@@ -1,7 +1,7 @@
 import unittest
 from commandline import (
     create_parser, validate_options, ERROR_MESSAGES,
-    TAGGING_MODEL, NER_MODEL, LEMMATIZATION_MODEL, PARSING_MODEL, MALT,
+    TAGGING_MODEL, UD_TAGGING_MODEL, NER_MODEL, LEMMATIZATION_MODEL, PARSING_MODEL, MALT,
 )
 
 def _validate_args(args):
@@ -42,6 +42,11 @@ class TestCommandlineFailiures(unittest.TestCase):
     def test_incorrect_tagging_model(self):
         with self.assertRaises(SystemExit) as manager:
             _validate_args(["--tagged", "--output=DIR", "--tagging-model=MODEL", "out.txt"])
+
+        self.assertEqual(str(manager.exception), ERROR_MESSAGES.not_found_tagging_model % "MODEL")
+
+        with self.assertRaises(SystemExit) as manager:
+            _validate_args(["--tagged", "--output=DIR", "--ud-tagging-model=MODEL", "out.txt"])
 
         self.assertEqual(str(manager.exception), ERROR_MESSAGES.not_found_tagging_model % "MODEL")
 
@@ -99,6 +104,7 @@ class TestCommandlineSuccesses(unittest.TestCase):
 
     def test_custom_models(self):
         _validate_args(["--tagged", "--output=DIR", "--tagging-model=" + TAGGING_MODEL, "out.txt"])
+        _validate_args(["--tagged", "--output=DIR", "--ud-tagging-model=" + UD_TAGGING_MODEL, "out.txt"])
         _validate_args(["--tagged", "--lemmatized", "--output=DIR", "--lemmatization-model=" + LEMMATIZATION_MODEL, "out.txt"])
         _validate_args(["--parsed", "--output=DIR", "--parsing-model=" + PARSING_MODEL, "out.txt"])
         _validate_args(["--ner", "--tagged", "--lemmatized", "--output=DIR", "--ner-model=" + NER_MODEL, "out.txt"])

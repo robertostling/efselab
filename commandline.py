@@ -94,6 +94,9 @@ def validate_options(options, args):
     if options.tagged and not os.path.exists(options.tagging_model):
         sys.exit(ERROR_MESSAGES.not_found_tagging_model % options.tagging_model)
 
+    if options.tagged and not os.path.exists(options.ud_tagging_model):
+        sys.exit(ERROR_MESSAGES.not_found_tagging_model % options.ud_tagging_model)
+
     if options.lemmatized and not options.tagged:
         sys.exit(ERROR_MESSAGES.lemmatized_without_tagged)
 
