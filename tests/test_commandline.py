@@ -19,9 +19,19 @@ class TestCommandlineFailiures(unittest.TestCase):
 
         self.assertEqual(str(manager.exception), ERROR_MESSAGES.no_target)
 
+        with self.assertRaises(SystemExit) as manager:
+            _validate_args(["--all"])
+
+        self.assertEqual(str(manager.exception), ERROR_MESSAGES.no_target)
+
     def test_no_filename(self):
         with self.assertRaises(SystemExit) as manager:
             _validate_args(["--tokenized", "--output=DIR"])
+
+        self.assertEqual(str(manager.exception), ERROR_MESSAGES.no_filename)
+
+        with self.assertRaises(SystemExit) as manager:
+            _validate_args(["--all", "--output=DIR"])
 
         self.assertEqual(str(manager.exception), ERROR_MESSAGES.no_filename)
 
