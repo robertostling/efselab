@@ -16,7 +16,7 @@ from subprocess import Popen
 from conll import tagged_to_tagged_conll
 from lemmatize import SUCLemmatizer
 from tagger import SucTagger, SucNETagger, UDTagger
-from tokenize import build_sentences
+from tokenizer import build_sentences
 
 __authors__ = """
 Filip Salomonsson <filip.salomonsson@gmail.com>
