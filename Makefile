@@ -6,4 +6,4 @@ clean:
 	rm -f *.so
 
 run_tests:
-	python -m unittest discover
+	python3 -m unittest discover
