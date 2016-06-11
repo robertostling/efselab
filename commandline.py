@@ -12,46 +12,46 @@ LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
 PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
 MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
 
-def parse_options():
+def create_parser():
     # Set up and parse command-line options
     usage = "usage: %prog --output-dir=DIR [options] FILENAME [...]"
-    op = OptionParser(usage=usage)
-    op.add_option("-o", "--output-dir", dest="output_dir", metavar="DIR",
+    parser = OptionParser(usage=usage)
+    parser.add_option("-o", "--output-dir", dest="output_dir", metavar="DIR",
                   help="set target directory for output (Required.)")
-    op.add_option("--skip-tokenization", dest="skip_tokenization",
+    parser.add_option("--skip-tokenization", dest="skip_tokenization",
                   action="store_true", help="Assume tokenized input")
-    op.add_option("--tokenized", dest="tokenized", action="store_true",
+    parser.add_option("--tokenized", dest="tokenized", action="store_true",
                   help="Generate tokenized output file(s) (*.tok)")
-    op.add_option("--tagged", dest="tagged", action="store_true",
+    parser.add_option("--tagged", dest="tagged", action="store_true",
                   help="Generate tagged output file(s) (*.tag)")
-    op.add_option("--lemmatized", dest="lemmatized", action="store_true",
+    parser.add_option("--lemmatized", dest="lemmatized", action="store_true",
                   help="Also lemmatize the tagged output file(s) (*.tag)")
-    op.add_option("--parsed", dest="parsed", action="store_true",
+    parser.add_option("--parsed", dest="parsed", action="store_true",
                   help="Generate parsed output file(s) (*.conll)")
-    op.add_option("--ner", dest="ner", action="store_true",
+    parser.add_option("--ner", dest="ner", action="store_true",
                   help="Generate named entity file(s) (*.ne)")
-    op.add_option("--all", dest="all", action="store_true",
+    parser.add_option("--all", dest="all", action="store_true",
                   help="Equivalent to --tokenized --tagged --lemmatized --ner --parsed")
-    op.add_option("-m", "--tagging-model", dest="tagging_model",
+    parser.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
-    op.add_option("-u", "--ud-tagging-model", dest="ud_tagging_model",
+    parser.add_option("-u", "--ud-tagging-model", dest="ud_tagging_model",
                   default=UD_TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging (UD wrapper)")
-    op.add_option("-l", "--lemmatization-model", dest="lemmatization_model",
+    parser.add_option("-l", "--lemmatization-model", dest="lemmatization_model",
                   default=LEMMATIZATION_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
-    op.add_option("-n", "--ner-model", dest="ner_model",
+    parser.add_option("-n", "--ner-model", dest="ner_model",
                   default=NER_MODEL, metavar="FILENAME",
                   help="Model for named entity recognizer")
-    op.add_option("-p", "--parsing-model", dest="parsing_model",
+    parser.add_option("-p", "--parsing-model", dest="parsing_model",
                   default=PARSING_MODEL, metavar="MODEL",
                   help="MaltParser model file for parsing")
-    op.add_option("--malt", dest="malt", default=MALT, metavar="JAR",
+    parser.add_option("--malt", dest="malt", default=MALT, metavar="JAR",
                   help=".jar file of MaltParser")
-    op.add_option("--no-delete", dest="no_delete", action="store_true",
+    parser.add_option("--no-delete", dest="no_delete", action="store_true",
                   help="Don't delete temporary working directory.")
-    return op.parse_args()
+    return parser
 
 def validate_options(options, args):
     if options.all:

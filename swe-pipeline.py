@@ -12,7 +12,7 @@ import sys
 import tempfile
 from subprocess import Popen
 
-from commandline import parse_options, validate_options
+from commandline import create_parser, validate_options
 from conll import tagged_to_tagged_conll
 from lemmatize import SUCLemmatizer
 from tagger import SucTagger, SucNETagger, UDTagger
@@ -27,7 +27,8 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def main():
-    options, args = parse_options()
+    parser = create_parser()
+    options, args = parser.parse_args()
     validate_options(options, args)
     run_pipeline(options, args)
 
