@@ -37,7 +37,6 @@ def run_pipeline(options, args):
         "suc_ne_tagger": None,
         "suc_tagger": None,
         "ud_tagger": None,
-        "suc_ne_tagger": None,
         "lemmatizer": None,
     }
     if options.tagged or options.ner or options.parsed:
