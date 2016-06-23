@@ -91,7 +91,7 @@ def process_file(options, filename, tmp_dir, models):
 
             if options.tagged or options.parsed or options.ner:
                 lemmas, ud_tags_list, suc_tags_list, suc_ne_list = \
-                    run_tagging_and_lemmatization(sentence, models)
+                    run_tagging_and_lemmatization(options, sentence, models)
 
                 annotated_sentences.append(
                     zip(sentence, lemmas, ud_tags_list, suc_tags_list)
@@ -111,7 +111,7 @@ def process_file(options, filename, tmp_dir, models):
 
                 write_to_file(tagged, lines)
 
-                if models["suc_ne_tagger"] is not None:
+                if options.ner:
                     ner_lines = [
                         "\t".join(line)
                         for line in zip(sentence, suc_ne_list)
@@ -149,23 +149,24 @@ def run_tokenization(options, filename):
 
     return sentences
 
-def run_tagging_and_lemmatization(sentence, models):
+def run_tagging_and_lemmatization(options, sentence, models):
     lemmas = []
     ud_tags_list = []
     suc_tags_list = models["suc_tagger"].tag(sentence)
 
-    if models["lemmatizer"]:
+    if options.lemmatized:
         lemmas = [
             models["lemmatizer"].predict(token, tag)
             for token, tag in zip(sentence, suc_tags_list)
         ]
         ud_tags_list = models["ud_tagger"].tag(sentence, lemmas, suc_tags_list)
-        if models["suc_ne_tagger"] is not None:
+
+        if options.ner:
             suc_ne_list = models["suc_ne_tagger"].tag(
                 list(zip(sentence, lemmas, suc_tags_list))
             )
         else:
-            suc_ne_list = [None] * len(sentence)
+            suc_ne_list = []
 
     return lemmas, ud_tags_list, suc_tags_list, suc_ne_list
 
