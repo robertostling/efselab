@@ -100,11 +100,11 @@ this repository):
 Then you should be able to run the pipeline like this:
 
     mkdir output
-    ./swe-pipeline.py -o output --all file.txt
+    ./swe_pipeline.py -o output --all file.txt
 
 For a more detailed description of the command-line options, run:
 
-    ./swe-pipeline.py --help
+    ./swe_pipeline.py --help
 
 ## Performance-related options
 
