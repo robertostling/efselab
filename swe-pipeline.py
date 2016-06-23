@@ -33,17 +33,21 @@ def main():
     run_pipeline(options, args)
 
 def run_pipeline(options, args):
-    suc_ne_tagger = None
-    suc_tagger = None
-    ud_tagger = None
+    models = {
+        "suc_ne_tagger": None,
+        "suc_tagger": None,
+        "ud_tagger": None,
+        "suc_ne_tagger": None,
+        "lemmatizer": None,
+    }
     if options.tagged or options.ner or options.parsed:
-        suc_tagger = SucTagger(options.tagging_model)
+        models["suc_tagger"] = SucTagger(options.tagging_model)
 
         if options.lemmatized:
-            ud_tagger = UDTagger(options.ud_tagging_model)
+            models["ud_tagger"] = UDTagger(options.ud_tagging_model)
 
     if options.ner:
-        suc_ne_tagger = SucNETagger(options.ner_model)
+        models["suc_ne_tagger"] = SucNETagger(options.ner_model)
 
     # Set up the working directory
     tmp_dir = tempfile.mkdtemp("-stb-pipeline")
@@ -53,10 +57,9 @@ def run_pipeline(options, args):
             tmp_dir
         )
 
-    lemmatizer = None
     if options.lemmatized:
-        lemmatizer = SUCLemmatizer()
-        lemmatizer.load(options.lemmatization_model)
+        models["lemmatizer"] = SUCLemmatizer()
+        models["lemmatizer"].load(options.lemmatization_model)
 
     # Process each input file
     for filename in args:
@@ -64,15 +67,12 @@ def run_pipeline(options, args):
             options,
             filename,
             tmp_dir,
-            lemmatizer,
-            suc_tagger,
-            ud_tagger,
-            suc_ne_tagger
+            models,
         )
 
     cleanup(options, tmp_dir)
 
-def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger, suc_ne_tagger):
+def process_file(options, filename, tmp_dir, models):
     print("Processing %s..." % filename, file=sys.stderr)
 
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
@@ -92,13 +92,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger, 
 
             if options.tagged or options.parsed or options.ner:
                 lemmas, ud_tags_list, suc_tags_list, suc_ne_list = \
-                    run_tagging_and_lemmatization(
-                        sentence,
-                        lemmatizer,
-                        suc_tagger,
-                        ud_tagger,
-                        suc_ne_tagger
-                    )
+                    run_tagging_and_lemmatization(sentence, models)
 
                 annotated_sentences.append(
                     zip(sentence, lemmas, ud_tags_list, suc_tags_list)
@@ -122,7 +116,7 @@ def process_file(options, filename, tmp_dir, lemmatizer, suc_tagger, ud_tagger, 
 
                 write_to_file(tagged, lines)
 
-                if suc_ne_tagger is not None:
+                if models["suc_ne_tagger"] is not None:
                     ner_lines = [
                         "\t".join(line)
                         for line in zip(sentence, suc_ne_list)
@@ -159,16 +153,16 @@ def run_tokenization(options, filename):
 
     return sentences
 
-def run_tagging_and_lemmatization(sentence, lemmatizer, suc_tagger, ud_tagger, suc_ne_tagger):
+def run_tagging_and_lemmatization(sentence, models):
     lemmas = []
     ud_tags_list = []
-    suc_tags_list = suc_tagger.tag(sentence)
+    suc_tags_list = models["suc_tagger"].tag(sentence)
 
-    if lemmatizer:
-        lemmas = [lemmatizer.predict(token, tag) for token, tag in zip(sentence, suc_tags_list)]
-        ud_tags_list = ud_tagger.tag(sentence, lemmas, suc_tags_list)
-        if suc_ne_tagger is not None:
-            suc_ne_list = suc_ne_tagger.tag(
+    if models["lemmatizer"]:
+        lemmas = [models["lemmatizer"].predict(token, tag) for token, tag in zip(sentence, suc_tags_list)]
+        ud_tags_list = models["ud_tagger"].tag(sentence, lemmas, suc_tags_list)
+        if models["suc_ne_tagger"] is not None:
+            suc_ne_list = models["suc_ne_tagger"].tag(
                 list(zip(sentence, lemmas, suc_tags_list))
             )
         else:
