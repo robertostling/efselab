@@ -39,7 +39,7 @@ construct lexicon hash tables. Simply type:
 
 Each tagger specification file (`build_*.py`) also functions as a build
 script. For a complete list of arguments, run e.g.:
-    
+
     python3 build_udt_en.py --help
 
 Then, to build a tagger simply run the corresponding configuration file, the
@@ -49,7 +49,7 @@ with the name `udt_en`, both an executable file and a Python module:
     python3 build_udt_en.py --name udt_en --python
 
 which will build a tagger for the English part of the Universal Dependencies
-Treebank. This produces a binary file, `udt_en`, which contains everything 
+Treebank. This produces a binary file, `udt_en`, which contains everything
 except the model weights. These need to be learned in the following way:
 
     ./udt_en train data/udt-en-train.tab data/udt-en-dev.tab udt-en.bin
@@ -70,7 +70,7 @@ tags using the `cut` tool, and using `-` as the input file to read from stdin):
 There is a Swedish annotation pipeline, adapted from the Swedish Treebank
 pipeline (originally using hunpos for POS tagging) created at
 Uppsala University by Filip Salomonsson. It can do the following:
- 
+
  * Tokenization (using a Python tokenizer by Filip Salomonsson)
  * POS tagging (using `efselab` with a SUC + SIC model)
  * Conversion to Universal PoS tags (using `efselab` trained on Universal
