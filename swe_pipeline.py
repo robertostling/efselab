@@ -153,6 +153,7 @@ def run_tagging_and_lemmatization(options, sentence, models):
     lemmas = []
     ud_tags_list = []
     suc_tags_list = models["suc_tagger"].tag(sentence)
+    suc_ne_list = []
 
     if options.lemmatized:
         lemmas = [
@@ -165,8 +166,6 @@ def run_tagging_and_lemmatization(options, sentence, models):
             suc_ne_list = models["suc_ne_tagger"].tag(
                 list(zip(sentence, lemmas, suc_tags_list))
             )
-        else:
-            suc_ne_list = []
 
     return lemmas, ud_tags_list, suc_tags_list, suc_ne_list
 
