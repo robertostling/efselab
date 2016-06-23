@@ -122,7 +122,9 @@ def process_file(options, filename, tmp_dir, models):
 
     parsed_filename = ""
     if options.parsed:
-        parsed_filename = parse(options, filename, annotated_sentences, tmp_dir)
+        parsed_filename = parse(
+            options, filename, annotated_sentences, tmp_dir
+        )
 
     write_to_output(
         options,
@@ -155,7 +157,10 @@ def run_tagging_and_lemmatization(sentence, models):
     suc_tags_list = models["suc_tagger"].tag(sentence)
 
     if models["lemmatizer"]:
-        lemmas = [models["lemmatizer"].predict(token, tag) for token, tag in zip(sentence, suc_tags_list)]
+        lemmas = [
+            models["lemmatizer"].predict(token, tag)
+            for token, tag in zip(sentence, suc_tags_list)
+        ]
         ud_tags_list = models["ud_tagger"].tag(sentence, lemmas, suc_tags_list)
         if models["suc_ne_tagger"] is not None:
             suc_ne_list = models["suc_ne_tagger"].tag(
@@ -191,7 +196,9 @@ def parse(options, filename, annotated_sentences, tmp_dir):
 
     # Run the parser
     with open(log_filename, "w", encoding="utf-8") as log_file:
-        returncode = Popen(parser_cmdline, stdout=log_file, stderr=log_file).wait()
+        returncode = Popen(
+            parser_cmdline, stdout=log_file, stderr=log_file
+        ).wait()
 
     if returncode:
         sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
