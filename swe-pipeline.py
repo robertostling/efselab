@@ -104,15 +104,11 @@ def process_file(options, filename, tmp_dir, models):
                 ]
 
                 if lemmas and ud_tags_list:
-                    lines = [
-                        "\t".join(line)
-                        for line in zip(sentence, suc_tags_list, ud_tag_list, lemmas)
-                    ]
+                    line_tokens = sentence, suc_tags_list, ud_tag_list, lemmas
                 else:
-                    lines = [
-                        "\t".join(line)
-                        for line in zip(sentence, suc_tags_list)
-                    ]
+                    line_tokens = sentence, suc_tags_list
+
+                lines = ["\t".join(line) for line in zip(*line_tokens)]
 
                 write_to_file(tagged, lines)
 
