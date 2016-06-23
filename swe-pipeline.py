@@ -201,7 +201,7 @@ def parse(options, filename, annotated_sentences, tmp_dir):
         ).wait()
 
     if returncode:
-        sys.exit("Parsing failed! Log file may contain more information: %s" % log_filename)
+        sys.exit("Parsing failed! See log file: %s" % log_filename)
 
     return parsed_filename
 
