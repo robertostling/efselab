@@ -126,13 +126,12 @@ def process_file(options, filename, tmp_dir, models):
             options, filename, annotated_sentences, tmp_dir
         )
 
-    write_to_output(
-        options,
-        tokenized_filename,
-        tagged_filename,
-        parsed_filename,
-        ner_filename
-    )
+    write_to_output([
+        (options.tokenized, tokenized_filename, options.output_dir),
+        (options.tagged, tagged_filename, options.output_dir),
+        (options.parsed, parsed_filename, options.output_dir),
+        (options.ner, ner_filename, options.output_dir),
+    ])
 
     print("done.", file=sys.stderr)
 
@@ -210,18 +209,10 @@ def write_to_file(file, lines):
         print(line, file=file)
     print(file=file)
 
-def write_to_output(options, tokenized_filename, tagged_filename, parsed_filename, ner_filename):
-    if options.tokenized:
-        shutil.copy(tokenized_filename, options.output_dir)
-
-    if options.tagged:
-        shutil.copy(tagged_filename, options.output_dir)
-
-    if options.parsed:
-        shutil.copy(parsed_filename, options.output_dir)
-
-    if options.ner:
-        shutil.copy(ner_filename, options.output_dir)
+def write_to_output(filename_mapping):
+    for should_copy, filename, output_dir in filename_mapping:
+        if should_copy:
+            shutil.copy(filename, output_dir)
 
 def cleanup(options, tmp_dir):
     if not options.no_delete:
