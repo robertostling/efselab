@@ -19,7 +19,7 @@ EVALSCRIPT="perl 3rdparty/conlleval.perl"
 mkdir $EVALDIR
 cut -f 1 suc-data/suc-ne-test.tab | sed 's/ /_/g' >$EVALDIR/test-raw.tab
 cut -f 1 suc-data/suc-ne-dev.tab | sed 's/ /_/g' >$EVALDIR/dev-raw.tab
-python3 swe-pipeline.py --skip-tokenization --tagged --tokenized \
+python3 swe_pipeline.py --skip-tokenization --tagged --tokenized \
     --lemmatized --ner \
     --output $EVALDIR $EVALDIR/test-raw.tab $EVALDIR/dev-raw.tab
 paste $EVALDIR/test-raw.tab suc-data/suc-ne-test.tab $EVALDIR/test-raw.ne | \
