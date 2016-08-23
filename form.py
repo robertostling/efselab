@@ -287,6 +287,8 @@ static void beam_search(
         const real *weights,
         size_t weights_len,
         int use_lexicon,
+        int use_dropout,
+        feat_hash_t dropout_seed,
         label *result)
 {
     size_t i;
@@ -320,7 +322,8 @@ static void beam_search(
                             result, tags[j], i, n_items,
                             invariant_hashes, feature_hashes);
                     const real score = get_score(
-                            feature_hashes, N_FEATURES, weights, weights_len);
+                            feature_hashes, N_FEATURES, weights, weights_len,
+                            use_dropout, dropout_seed);
                     if (score > max_score) {
                         max_score = score;
                         max_tag = (label)tags[j];
@@ -335,7 +338,8 @@ static void beam_search(
                         result, tag, i, n_items,
                         invariant_hashes, feature_hashes);
                 const real score = get_score(
-                        feature_hashes, N_FEATURES, weights, weights_len);
+                        feature_hashes, N_FEATURES, weights, weights_len,
+                        use_dropout, dropout_seed);
                 if (score > max_score) {
                     max_score = score;
                     max_tag = (label)tag;
@@ -360,6 +364,8 @@ static void beam_search(
         const real *weights,
         size_t weights_len,
         int use_lexicon,
+        int use_dropout,
+        feat_hash_t dropout_seed,
         label *result)
 {
     size_t i;
@@ -413,7 +419,8 @@ static void beam_search(
                                 invariant_hashes, feature_hashes);
                         const real score = beam_scores[k] + get_score(
                                 feature_hashes, N_FEATURES,
-                                weights, weights_len);
+                                weights, weights_len,
+                                use_dropout, dropout_seed);
                         if (score > max_score[BEAM_SIZE-1]) {
                             size_t l,m;
                             for (l=0; score < max_score[l]; l++);
@@ -438,7 +445,8 @@ static void beam_search(
                             beams[k], tag, i, n_items,
                             invariant_hashes, feature_hashes);
                     const real score = beam_scores[k] + get_score(
-                            feature_hashes, N_FEATURES, weights, weights_len);
+                            feature_hashes, N_FEATURES, weights, weights_len,
+                            use_dropout, dropout_seed);
                     if (score > max_score[BEAM_SIZE-1]) {
                         size_t l,m;
                         for (l=0; score < max_score[l]; l++);

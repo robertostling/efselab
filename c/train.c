@@ -21,6 +21,7 @@ static int train(
 {
     FILE *train_file = fopen(train_filename, "rb");
     FILE *tune_file = fopen(tune_filename, "rb");
+    const int use_dropout = DROPOUT_BITMASK != 0;
 
     if (train_file == NULL) {
         perror("unable to open training data file");
@@ -61,6 +62,11 @@ static int train(
     size_t iter;
     double tune_error_avg = 1.0;
     double best_error = 1.0;
+
+    feat_hash_t dropout_seed = 1;
+
+    const int max_patience = 3;
+    int patience_left = max_patience;
 
     // First, get file offsets of sentence starts
     size_t max_sents = 0x100000;
@@ -130,8 +136,10 @@ static int train(
             n_total += n_items;
             n_errs += train_sequence(
                     (const uint8_t**)field_buf, field_len, N_TRAIN_FIELDS,
-                    n_items, weights, weights_len, gold, t, average_weights);
+                    n_items, weights, weights_len, gold, t, average_weights,
+                    use_dropout, dropout_seed);
             t += 1.0;
+            dropout_seed++;
         }
 
         fprintf(stderr, "  Training error: %.2f%%\n",
@@ -153,12 +161,19 @@ static int train(
         free(real_average_weights);
         rewind(tune_file);
 
+        // TODO: consider saving the best-yet weight vector
+
         fprintf(stderr, "  Tuning error:   %.2f%%\n", 100.0*tune_error);
-        if (tune_error < best_error) best_error = tune_error;
+        if (tune_error < best_error) {
+            best_error = tune_error;
+            patience_left = max_patience;
+        }
         if (iter == 0) {
             tune_error_avg = tune_error;
         } else {
-            if (tune_error > 0.99*tune_error_avg) break;
+            if (tune_error > 0.99*tune_error_avg) {
+                if (! (--patience_left)) break;
+            }
             tune_error_avg = tune_error_avg*0.5 + tune_error*0.5;
         }
     }

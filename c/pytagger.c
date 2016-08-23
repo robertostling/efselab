@@ -85,7 +85,7 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
     label result[seq_len];
     beam_search(
             (const uint8_t**)field_buf, field_len, N_TAG_FIELDS,
-            seq_len, weights, weights_len, 1, result);
+            seq_len, weights, weights_len, 1, 0, 0, result);
 
     PyObject *tags = PyTuple_New(seq_len);
     for (i=0; i<seq_len; i++)

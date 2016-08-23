@@ -98,8 +98,8 @@ typedef uint32_t   label;
        self.name, self.name,
        self.partial_hash_bits, self.feat_hash_bits))
 
-        c_include('headers.h')
         c_include('hash.c')
+        c_include('headers.h')
 
         translation.c_emit(f, self)
 

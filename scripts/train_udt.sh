@@ -2,7 +2,7 @@
 
 OUTPUT=$1
 if [ -z "$OUTPUT" ]; then
-    echo "Usage: train_udt.sh output-file"
+    echo "Usage: scripts/train_udt.sh output-file"
     exit 1
 fi
 

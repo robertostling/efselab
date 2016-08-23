@@ -39,7 +39,7 @@ static int tag(
         label result[n_items];
         beam_search(
                 (const uint8_t**)field_buf, field_len, n_fields,
-                n_items, weights, weights_len, 1, result);
+                n_items, weights, weights_len, 1, 0, 0, result);
 
         if (outfile != NULL) {
             for (i=0; i<n_items; i++) {

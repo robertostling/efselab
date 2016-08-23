@@ -15,6 +15,11 @@
 #include <string.h>
 #include <float.h>
 
+// A feature is included by checking if its (randomized) hash h satisfies:
+//      (h & DROPOUT_BITMASK) != 0
+// Or dropout is disabled completely if DROPOUT_BITMASK == 0.
+#define DROPOUT_BITMASK 7
+
 typedef float real;
 #define REAL_MAX        FLT_MAX
 
@@ -42,13 +47,27 @@ static inline real get_score(
         const feat_hash_t *hashes,
         size_t len,
         const real *weights,
-        size_t weights_len)
+        size_t weights_len,
+        int use_dropout,
+        feat_hash_t dropout_seed)
 {
     size_t i;
     const feat_hash_t mask = (feat_hash_t)weights_len - 1;
-    real sum = weights[hashes[0] & mask];
-    for (i=1; i<len; i++) sum += weights[hashes[i] & mask];
-    return sum;
+    if (use_dropout) {
+        real sum = (real)0.0;
+        for (i=0; i<len; i++) {
+            const feat_hash_t h = hashes[i];
+            if (hash32_mix(dropout_seed, h) & DROPOUT_BITMASK)
+                sum += weights[h & mask];
+        }
+        // NOTE: since the scale of the feature vector does not matter, we do
+        //       not scale the sum here.
+        return sum;
+    } else {
+        real sum = weights[hashes[0] & mask];
+        for (i=1; i<len; i++) sum += weights[hashes[i] & mask];
+        return sum;
+    }
 }
 
 
