@@ -10,6 +10,8 @@ parser.add_argument('--cc', dest='cc', type=str, default='cc',
 parser.add_argument('--cflags', dest='cflags', type=str,
     default='-Wall -Wno-unused-function -Ofast',
     help='C compiler flags')
+parser.add_argument('--train', dest='train', type=str,
+    help='training file (only used with generic model)')
 parser.add_argument('--n-train-fields', dest='n_train_fields',
     type=int, default=2,
     help='number of tab-separated fields in training data (default: 2)')
