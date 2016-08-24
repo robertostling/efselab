@@ -32,7 +32,7 @@ static void adjust_weights(
         for (j=0; j<N_FEATURES; j++) {
             const feat_hash_t h = feature_hashes[j];
             if ((!use_dropout) ||
-                (hash32_mix(dropout_seed, h) & DROPOUT_BITMASK)) {
+                (hash32_mix(dropout_seed, h) >= DROPOUT_CONSTANT)) {
                 const size_t idx = h & mask;
                 average_weights[idx*2] +=
                     (t - average_weights[idx*2+1]) * (double)weights[idx];

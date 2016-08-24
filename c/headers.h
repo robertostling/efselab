@@ -15,10 +15,22 @@
 #include <string.h>
 #include <float.h>
 
-// A feature is included by checking if its (randomized) hash h satisfies:
-//      (h & DROPOUT_BITMASK) != 0
-// Or dropout is disabled completely if DROPOUT_BITMASK == 0.
-#define DROPOUT_BITMASK 7
+// Uncomment this to do perform separate training over a number of weight
+// vector lengths, choosing the best model (on the dev set):
+//#define MIN_WEIGHTS_LEN     0x40000
+//#define MAX_WEIGHTS_LEN     0x4000000
+
+// Or just fix the length:
+#define MIN_WEIGHTS_LEN     0x4000000
+#define MAX_WEIGHTS_LEN     0x4000000
+
+// Uncomment this to compress the weight vector after training:
+#define POST_TRAINING_COMPRESSION
+
+// A non-zero value means dropout is used, but empirically this doesn't seem
+// to help
+#define DROPOUT_RATE        0
+#define DROPOUT_CONSTANT    ((uint32_t)((double)DROPOUT_RATE*4294967296.0))
 
 typedef float real;
 #define REAL_MAX        FLT_MAX
@@ -57,7 +69,7 @@ static inline real get_score(
         real sum = (real)0.0;
         for (i=0; i<len; i++) {
             const feat_hash_t h = hashes[i];
-            if (hash32_mix(dropout_seed, h) & DROPOUT_BITMASK)
+            if (hash32_mix(dropout_seed, h) >= DROPOUT_CONSTANT)
                 sum += weights[h & mask];
         }
         // NOTE: since the scale of the feature vector does not matter, we do
