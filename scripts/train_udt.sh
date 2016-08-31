@@ -5,6 +5,8 @@
 # this setting (which launches one job per core):
 N_CORES="+0"
 
+TAGGER_OPTIONS="--beam-size 4"
+
 OUTPUT=$1
 if [ -z "$OUTPUT" ]; then
     echo "Usage: scripts/train_udt.sh output-file"
@@ -17,7 +19,7 @@ LANGS='*'
 # First compile all the models
 
 for TRAIN in `ls udt/$LANGS-ud-train.tab`; do
-    sem -j"$N_CORES" python3 build_udt.py --train $TRAIN
+    sem -j"$N_CORES" python3 build_udt.py --train "$TRAIN" $TAGGER_OPTIONS
 done
 
 sem --wait
@@ -31,7 +33,7 @@ for TRAIN in `ls udt/$LANGS-ud-train.tab`; do
     TEST=`echo $TRAIN | sed 's/-train/-test/'`
     LANGUAGE=`echo $TRAIN | grep -Po '[a-z_]+-ud-train' | sed 's/-ud-train//'`
     MODEL="udt_$LANGUAGE"
-    sem -j"$N_CORES" ./$MODEL train $TRAIN $DEV $MODEL.bin
+    sem -j"$N_CORES" ./$MODEL train "$TRAIN" "$DEV" $MODEL.bin
 done
 
 sem --wait
