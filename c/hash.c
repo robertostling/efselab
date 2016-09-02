@@ -52,7 +52,10 @@ static inline int utf8_decode(
     size_t j = 0;
     for (i=0; i<src_len; i++) {
         utf8_step(&state, &codep, src[i]);
-        if (!state) dest[j++] = codep;
+        if (!state) {
+            dest[j++] = codep;
+            if (j >= *dest_len) return -1;
+        }
     }
     *dest_len = j;
     if (state != UTF8_ACCEPT) return -1;

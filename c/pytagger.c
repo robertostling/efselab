@@ -37,6 +37,14 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
                 return NULL;
             }
             PyObject *buf = PyUnicode_AsEncodedString(row, "utf-8", NULL);
+            if (PyBytes_Size(buf) >= MAX_STR) {
+                char msg[0x100];
+                snprintf(msg, sizeof(msg),
+                        "Input string too long: %zd bytes",
+                        PyBytes_Size(buf));
+                PyErr_SetString(PyExc_ValueError, msg);
+                return NULL;
+            }
             field_buf[i*N_TAG_FIELDS + 0] = (uint8_t*)PyBytes_AsString(buf);
             field_len[i*N_TAG_FIELDS + 0] = PyBytes_Size(buf);
             field_bytes[i*N_TAG_FIELDS + 0] = buf;
@@ -62,6 +70,14 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
             for (j=0; j<N_TAG_FIELDS; j++) {
                 PyObject *str = PyTuple_GetItem(row, j);
                 if (PyBytes_Check(str)) {
+                    if (PyBytes_Size(str) >= MAX_STR) {
+                        char msg[0x100];
+                        snprintf(msg, sizeof(msg),
+                                "Input string too long: %zd bytes",
+                                PyBytes_Size(str));
+                        PyErr_SetString(PyExc_ValueError, msg);
+                        return NULL;
+                    }
                     field_buf[i*N_TAG_FIELDS + j] =
                         (uint8_t*)PyBytes_AsString(str);
                     field_len[i*N_TAG_FIELDS + j] = PyBytes_Size(str);
@@ -69,6 +85,14 @@ static PyObject *py_tag(PyObject *self, PyObject *args) {
                 } else if(PyUnicode_Check(str)) {
                     PyObject *buf = PyUnicode_AsEncodedString(
                             str, "utf-8", NULL);
+                    if (PyBytes_Size(buf) >= MAX_STR) {
+                        char msg[0x100];
+                        snprintf(msg, sizeof(msg),
+                                "Input string too long: %zd bytes",
+                                PyBytes_Size(buf));
+                        PyErr_SetString(PyExc_ValueError, msg);
+                        return NULL;
+                    }
                     field_buf[i*N_TAG_FIELDS + j] =
                         (uint8_t*)PyBytes_AsString(buf);
                     field_len[i*N_TAG_FIELDS + j] = PyBytes_Size(buf);
