@@ -26,6 +26,8 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
+MAX_TOKEN = 256
+
 def main():
     parser = create_parser()
     options, args = parser.parse_args()
@@ -147,6 +149,9 @@ def run_tokenization(options, filename):
         else:
             sentences = build_sentences(data)
 
+    sentences = list(filter(bool,
+        [[token for token in sentence if len(token) <= MAX_TOKEN]
+            for sentence in sentences]))
     return sentences
 
 def run_tagging_and_lemmatization(options, sentence, models):
