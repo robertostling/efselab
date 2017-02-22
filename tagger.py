@@ -79,9 +79,9 @@ class UDTagger():
     }
 
     # Lemmas that MAY be copulas
-    COPULAS = set('vara bli heta'.split())
+    COPULAS = set('vara bli heta förbli'.split())
     # Lemmas that MMUST be copulas (if they are any kind of verbs)
-    ALWAYS_COPULAS = set('bli heta'.split())
+    ALWAYS_COPULAS = set('bli heta förbli'.split())
 
     def __init__(self, tagging_model):
         with open(tagging_model, 'rb') as f:

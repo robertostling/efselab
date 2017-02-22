@@ -10,7 +10,7 @@ These are in a 4-column format:
 import sys
 
 # "verka" needs to be manually disambiguated
-copulas = set('vara bli heta'.split())
+copulas = set('vara bli heta förbli'.split())
 
 def translate(lemma, suc_tag, suc_feats, ud1_tag):
     if ud1_tag == 'CONJ':
