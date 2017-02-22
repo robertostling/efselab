@@ -79,7 +79,7 @@ class UDTagger():
     }
 
     # Lemmas that MAY be copulas
-    COPULAS = set('vara bli heta verka'.split())
+    COPULAS = set('vara bli heta'.split())
     # Lemmas that MMUST be copulas (if they are any kind of verbs)
     ALWAYS_COPULAS = set('bli heta'.split())
 
