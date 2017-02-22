@@ -61,27 +61,29 @@ class UDTagger():
     NEGATIVE = {
         ('inte', 'AB'),
         ('icke', 'AB'),
+        ('aldrig', 'AB'),
+        ('knappast', 'AB'),
+        ('näppeligen', 'AB'),
+        ('varken', 'AB'),
+        ('föga', 'AB'),
+        ('igalunda', 'AB'),
         ('ej', 'AB'),
-        ('nej', 'IN'),
-        ('nehej', 'IN'),
-        ('nejdå', 'IN'),
-        ('nix', 'IN'),
+        #('nej', 'IN'),
+        #('nehej', 'IN'),
+        #('nejdå', 'IN'),
+        #('nix', 'IN'),
     }
 
     # Words that should have the feature Polarity=Pos
-    POSITIVE = {
-        ('ja', 'IN'),
-        ('jaa', 'IN'),
-        ('jadå', 'IN'),
-        ('jajamen', 'IN'),
-        ('jajamän', 'IN'),
-        ('jajamensan', 'IN'),
-    }
-
-    # Lemmas that MAY be copulas
-    COPULAS = set('vara bli heta förbli'.split())
-    # Lemmas that MMUST be copulas (if they are any kind of verbs)
-    ALWAYS_COPULAS = set('bli heta förbli'.split())
+    # NOTE: this is currently not used in the Swedish version
+    #POSITIVE = {
+    #    ('ja', 'IN'),
+    #    ('jaa', 'IN'),
+    #    ('jadå', 'IN'),
+    #    ('jajamen', 'IN'),
+    #    ('jajamän', 'IN'),
+    #    ('jajamensan', 'IN'),
+    #}
 
     def __init__(self, tagging_model):
         with open(tagging_model, 'rb') as f:
@@ -96,7 +98,8 @@ class UDTagger():
         self._is_nonstring_iterable(lemmas)
         self._is_nonstring_iterable(suc_tags_list)
 
-        suc_sentence = [(lemma, tag[:2], tag) for lemma, tag in zip(lemmas, suc_tags_list)]
+        suc_sentence = [(lemma, tag.split('|',1)[0], tag)
+                        for lemma, tag in zip(lemmas, suc_tags_list)]
         tag_list = udt_suc_sv.tag(self.tagger_weights, suc_sentence)
         tag_list = self.ud_verb_heuristics(tag_list, sentence, lemmas)
         features = self.ud_features(suc_tags_list, lemmas)
@@ -107,11 +110,9 @@ class UDTagger():
         ud_tags = list(ud_tags)
         n = len(ud_tags)
         for i in range(n):
-            if ud_tags[i] == 'VERB' and lemmas[i] in self.ALWAYS_COPULAS:
-                ud_tags[i] = 'AUX'
-            elif ud_tags[i] == 'AUX':
-                if lemmas[i] in self.COPULAS:
-                    # Keep copulas as AUX
+            if ud_tags[i] == 'AUX':
+                if lemmas[i] == 'vara':
+                    # Trust the copula classifier
                     continue
                 for j in range(i + 1, n):
                     if ud_tags[j] in ('AUX', 'VERB'):
@@ -162,8 +163,9 @@ class UDTagger():
 
             if (lemma, suc_tag) in self.NEGATIVE:
                 ud_feature_list += ["Polarity=Neg"]
-            elif (lemma, suc_tag) in self.POSITIVE:
-                ud_feature_list += ["Polarity=Pos"]
+            # Currently not used in the Swedish UD treebank:
+            #elif (lemma, suc_tag) in self.POSITIVE:
+            #    ud_feature_list += ["Polarity=Pos"]
 
             ud_features.append("|".join(sorted(ud_feature_list)) or "_")
 
