@@ -146,6 +146,12 @@ def run_tokenization(options, filename):
                 for sentence in data.split('\n\n')
                 if sentence.strip()
             ]
+        elif options.skip_segmentation:
+            sentences = [
+                    build_sentences(line, segment=False)
+                    for line in data.split('\n')
+                    if line.strip()
+            ]
         else:
             sentences = build_sentences(data)
 

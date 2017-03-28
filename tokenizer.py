@@ -77,7 +77,7 @@ ABBREVS = {
     ('t.ex', '.'): 't.ex.'
 }
 
-def build_sentences(data):
+def build_sentences(data, segment=True):
     data = data.strip()
 
     # Basic tokenization
@@ -85,6 +85,10 @@ def build_sentences(data):
 
     # Handle sentences and abbreviations
     marked = join_abbrevs(ABBREVS, tokens)
+
+    # If sentence segmentation is disabled, assume one single sentence
+    if not segment:
+        return [word for word in marked if word is not None]
 
     # Chop it into sentences based on the markers that are left
     sentences = group_sentences(marked)

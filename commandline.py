@@ -36,6 +36,8 @@ def create_parser():
                   help="set target directory for output (Required.)")
     parser.add_option("--skip-tokenization", dest="skip_tokenization",
                   action="store_true", help="Assume tokenized input")
+    parser.add_option("--skip-segmentation", dest="skip_segmentation",
+                  action="store_true", help="Assume one sentence per line")
     parser.add_option("--tokenized", dest="tokenized", action="store_true",
                   help="Generate tokenized output file(s) (*.tok)")
     parser.add_option("--tagged", dest="tagged", action="store_true",
