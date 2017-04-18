@@ -9,8 +9,8 @@ TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
 NER_MODEL = os.path.join(MODEL_DIR, "suc-ne.bin")
 UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
 LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
-PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
-MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
+PARSING_MODEL = os.path.join(MODEL_DIR, "old-swe-ud")
+MALT = os.path.join(MODEL_DIR, "maltparser-1.9.0/maltparser-1.9.0.jar")
 
 class AttrDict:
     def __init__(self, d):
@@ -36,6 +36,8 @@ def create_parser():
                   help="set target directory for output (Required.)")
     parser.add_option("--skip-tokenization", dest="skip_tokenization",
                   action="store_true", help="Assume tokenized input")
+    parser.add_option("--skip-segmentation", dest="skip_segmentation",
+                  action="store_true", help="Assume one sentence per line")
     parser.add_option("--tokenized", dest="tokenized", action="store_true",
                   help="Generate tokenized output file(s) (*.tok)")
     parser.add_option("--tagged", dest="tagged", action="store_true",

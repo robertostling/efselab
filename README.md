@@ -77,25 +77,13 @@ Uppsala University by Filip Salomonsson. It can do the following:
    Dependencies data plus some postprocessing heuristics by Aaron Smith)
  * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
  * Named Entity Recognition (using `efselab` with a SUC + SIC model)
- * Dependency prasing (using MaltParser by Joakim Nivre et al.)
+ * Dependency prasing (using MaltParser by Joakim Nivre et al.) into
+   Universal Dependencies format (version 2)
 
-To start using the pipeline, the easiest way is to download and unpack the
-[swe-pipeline data package](http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz)
-into the `efselab` directory, and compile the SUC tagger Python module.
-Remember to first run `make` to compile the lemmatizer:
+To start using the pipeline, you first need to execute the following
+convenience script:
 
-    make
-    wget http://mumin.ling.su.se/projects/efselab/swe-pipeline.tar.gz
-    tar xvzf swe-pipeline.tar.gz
-    python3 build_suc.py --skip-generate --python --n-train-fields 2
-    python3 build_suc_ne.py --skip-generate --python --n-train-fields 4
-
-
-Next, build the SUC-to-UD conversion model and train it (data is included in
-this repository):
-
-    python3 build_udt_suc_sv.py --python --beam-size 1 --n-train-fields 4
-    ./udt_suc_sv train data/sv-ud-train.tab data/sv-ud-dev.tab swe-pipeline/suc-ud.bin
+    scripts/install_swedish_pipeline.sh
 
 Then you should be able to run the pipeline like this:
 
