@@ -9,8 +9,8 @@ TAGGING_MODEL = os.path.join(MODEL_DIR, "suc.bin")
 NER_MODEL = os.path.join(MODEL_DIR, "suc-ne.bin")
 UD_TAGGING_MODEL = os.path.join(MODEL_DIR, "suc-ud.bin")
 LEMMATIZATION_MODEL = os.path.join(MODEL_DIR, "suc-saldo.lemmas")
-PARSING_MODEL = os.path.join(MODEL_DIR, "maltmodel-UD_Swedish")
-MALT = os.path.join(MODEL_DIR, "maltparser-1.8.1/maltparser-1.8.1.jar")
+PARSING_MODEL = os.path.join(MODEL_DIR, "old-swe-ud")
+MALT = os.path.join(MODEL_DIR, "maltparser-1.9.0/maltparser-1.9.0.jar")
 
 class AttrDict:
     def __init__(self, d):
