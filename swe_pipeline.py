@@ -10,6 +10,7 @@ import os
 import shutil
 import sys
 import tempfile
+import re
 from subprocess import Popen
 
 from commandline import create_parser, validate_options
@@ -136,7 +137,7 @@ def process_file(options, filename, tmp_dir, models):
 
     print("done.", file=sys.stderr)
 
-def run_tokenization(options, filename):
+def run_tokenization(options, filename, non_capitalized=None):
     with open(filename, "r", encoding="utf-8") as input_file:
         data = input_file.read()
 
@@ -147,7 +148,11 @@ def run_tokenization(options, filename):
                 if sentence.strip()
             ]
         else:
-            sentences = build_sentences(data)
+            if non_capitalized is None:
+                n_capitalized = len(re.findall(r'[\.!?] +[A-ZÅÄÖ]', data))
+                n_non_capitalized = len(re.findall(r'[\.!?] +[a-zåäö]', data))
+                non_capitalized = n_non_capitalized > 5*n_capitalized
+            sentences = build_sentences(data, non_capitalized=non_capitalized)
 
     sentences = list(filter(bool,
         [[token for token in sentence if len(token) <= MAX_TOKEN]

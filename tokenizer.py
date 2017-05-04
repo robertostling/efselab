@@ -77,14 +77,14 @@ ABBREVS = {
     ('t.ex', '.'): 't.ex.'
 }
 
-def build_sentences(data):
+def build_sentences(data, non_capitalized=False):
     data = data.strip()
 
     # Basic tokenization
     tokens = tokenize(data)
 
     # Handle sentences and abbreviations
-    marked = join_abbrevs(ABBREVS, tokens)
+    marked = join_abbrevs(ABBREVS, tokens, non_capitalized)
 
     # Chop it into sentences based on the markers that are left
     sentences = group_sentences(marked)
@@ -146,7 +146,7 @@ def tokenize(data):
             yield match.group(0)
 
 
-def join_abbrevs(abbrevs, tokens):
+def join_abbrevs(abbrevs, tokens, non_capitalized=False):
     abbrev_prefixes = set()
     for abbrev in abbrevs:
         for i in range(len(abbrev)):
@@ -198,7 +198,7 @@ def join_abbrevs(abbrevs, tokens):
             if None not in (token, next_token) and \
                     (not was_abbrev) and \
                     (token[-1] in ".:!?" or smiley_re.match(token)) \
-                    and next_token[0].isupper():
+                    and (non_capitalized or next_token[0].isupper()):
                 yield None
             was_abbrev = False
 
