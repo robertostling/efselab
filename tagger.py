@@ -53,9 +53,37 @@ class UDTagger():
         "SUP": ["VerbForm=Sup"],
         "SUV": ["Degree=Sup"],
         "UTR": ["Gender=Com"],
-        "AN": [],
+        "AN": ["Abbr=Yes"],
         "-": [],
     }
+
+    # Words that should have the feature Polarity=Neg
+    NEGATIVE = {
+        ('inte', 'AB'),
+        ('icke', 'AB'),
+        ('aldrig', 'AB'),
+        ('knappast', 'AB'),
+        ('näppeligen', 'AB'),
+        ('varken', 'AB'),
+        ('föga', 'AB'),
+        ('igalunda', 'AB'),
+        ('ej', 'AB'),
+        #('nej', 'IN'),
+        #('nehej', 'IN'),
+        #('nejdå', 'IN'),
+        #('nix', 'IN'),
+    }
+
+    # Words that should have the feature Polarity=Pos
+    # NOTE: this is currently not used in the Swedish version
+    #POSITIVE = {
+    #    ('ja', 'IN'),
+    #    ('jaa', 'IN'),
+    #    ('jadå', 'IN'),
+    #    ('jajamen', 'IN'),
+    #    ('jajamän', 'IN'),
+    #    ('jajamensan', 'IN'),
+    #}
 
     def __init__(self, tagging_model):
         with open(tagging_model, 'rb') as f:
@@ -70,10 +98,11 @@ class UDTagger():
         self._is_nonstring_iterable(lemmas)
         self._is_nonstring_iterable(suc_tags_list)
 
-        suc_sentence = [(lemma, tag[:2], tag) for lemma, tag in zip(lemmas, suc_tags_list)]
+        suc_sentence = [(lemma, tag.split('|',1)[0], tag)
+                        for lemma, tag in zip(lemmas, suc_tags_list)]
         tag_list = udt_suc_sv.tag(self.tagger_weights, suc_sentence)
         tag_list = self.ud_verb_heuristics(tag_list, sentence, lemmas)
-        features = self.ud_features(suc_tags_list)
+        features = self.ud_features(suc_tags_list, lemmas)
         return tuple(["|".join(t) for t in zip(tag_list, features)])
 
     def ud_verb_heuristics(self, ud_tags, tokens, lemmas):
@@ -81,8 +110,10 @@ class UDTagger():
         ud_tags = list(ud_tags)
         n = len(ud_tags)
         for i in range(n):
-#            if ud_tags[i] == 'AUX' and lemmas[i] != 'vara':
             if ud_tags[i] == 'AUX':
+                if lemmas[i] == 'vara':
+                    # Trust the copula classifier
+                    continue
                 for j in range(i + 1, n):
                     if ud_tags[j] in ('AUX', 'VERB'):
                         # If followed by AUX or VERB, do nothing
@@ -95,18 +126,25 @@ class UDTagger():
                         break
         return ud_tags
 
-    def ud_features(self, suc_tags_list):
+    def ud_features(self, suc_tags_list, lemmas):
         ud_features = []
 
-        for suc_tags in suc_tags_list:
-            if "|" not in suc_tags:
-                ud_features.append("_")
-                continue
+        for suc_tags, lemma in zip(suc_tags_list, lemmas):
+            # Apparently incorrect code from the UD 1 version:
+            #if "|" not in suc_tags:
+            #    ud_features.append("_")
+            #    continue
 
-            suc_tag, suc_features = suc_tags.split("|", 1)
+            if "|" in suc_tags:
+                fields = suc_tags.split("|")
+                suc_tag = fields[0]
+                suc_features = fields[1:]
+            else:
+                suc_tag = suc_tags
+                suc_features = []
 
             ud_feature_list = []
-            for suc_feature in suc_features.split("|"):
+            for suc_feature in suc_features:
                 # Don't include suc_features with multiple options in the UD suc_features
                 if "/" not in suc_feature:
                     ud_feature_list += self.FEATURE_MAPPING[suc_feature]
@@ -119,6 +157,15 @@ class UDTagger():
 
             if suc_tag in ["HS", "PS"]:
                 ud_feature_list += ["Poss=Yes"]  # Test this!
+
+            if suc_tag == "UO":
+                ud_feature_list += ["Foreign=Yes"]
+
+            if (lemma, suc_tag) in self.NEGATIVE:
+                ud_feature_list += ["Polarity=Neg"]
+            # Currently not used in the Swedish UD treebank:
+            #elif (lemma, suc_tag) in self.POSITIVE:
+            #    ud_feature_list += ["Polarity=Pos"]
 
             ud_features.append("|".join(sorted(ud_feature_list)) or "_")
 

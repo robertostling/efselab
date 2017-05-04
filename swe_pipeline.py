@@ -147,6 +147,12 @@ def run_tokenization(options, filename, non_capitalized=None):
                 for sentence in data.split('\n\n')
                 if sentence.strip()
             ]
+        elif options.skip_segmentation:
+            sentences = [
+                    build_sentences(line, segment=False)
+                    for line in data.split('\n')
+                    if line.strip()
+            ]
         else:
             if non_capitalized is None:
                 n_capitalized = len(re.findall(r'[\.!?] +[A-ZÅÄÖ]', data))
