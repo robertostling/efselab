@@ -206,15 +206,16 @@ def join_abbrevs(abbrevs, tokens, non_capitalized=False):
                 yield None
             was_abbrev = False
 
-def group_sentences(tokens):
+def group_sentences(tokens, max_len=200):
     """Group tokens into sentences, based on None tokens"""
     sentence = []
     for token in tokens:
         if token is None:
-            if sentence:
+            if sentence and len(sentence) <= max_len:
                 yield sentence
             sentence = []
         else:
             sentence.append(token)
-    if sentence:
+    if sentence and len(sentence) <= max_len:
         yield sentence
+

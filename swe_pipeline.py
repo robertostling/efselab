@@ -70,18 +70,20 @@ def run_pipeline(options, args):
             filename,
             tmp_dir,
             models,
+            (True if options.non_capitalized else None)
         )
 
     cleanup(options, tmp_dir)
 
-def process_file(options, filename, tmp_dir, models):
+def process_file(options, filename, tmp_dir, models, non_capitalized=None):
     print("Processing %s..." % filename, file=sys.stderr)
 
     tokenized_filename = output_filename(tmp_dir, filename, "tok")
     tagged_filename = output_filename(tmp_dir, filename, "tag")
     ner_filename = output_filename(tmp_dir, filename, "ne")
 
-    sentences = run_tokenization(options, filename)
+    sentences = run_tokenization(options, filename,
+            non_capitalized=non_capitalized)
     annotated_sentences = []
 
     with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \

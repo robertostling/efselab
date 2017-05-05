@@ -50,6 +50,10 @@ def create_parser():
                   help="Generate named entity file(s) (*.ne)")
     parser.add_option("--all", dest="all", action="store_true",
                   help="Equivalent to --tokenized --tagged --lemmatized --ner --parsed")
+    parser.add_option("--non-capitalized", dest="non_capitalized",
+            action="store_true",
+            help="The input is not properly capitalized "
+                 "(important for sentence segmentation)")
     parser.add_option("-m", "--tagging-model", dest="tagging_model",
                   default=TAGGING_MODEL, metavar="FILENAME",
                   help="Model for PoS tagging")
