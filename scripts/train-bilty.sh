@@ -19,11 +19,11 @@ TRAIN_FILES=`ls udv2/*-ud-train.tab`
 
 BILTY="python3 ../../local/bilstm-aux/src/bilty.py"
 
-mkdir -p udv2_models
+mkdir -p udv2_bilty_models
 
 for TRAIN_FILE in $TRAIN_FILES; do
     DEV_FILE=`echo $TRAIN_FILE | sed 's/ud-train.tab/ud-dev.tab/'`
-    MODEL_FILE=udv2_models/`basename $TRAIN_FILE | sed 's/-ud-train.tab//'`
+    MODEL_FILE=udv2_bilty_models/`basename $TRAIN_FILE | sed 's/-ud-train.tab//'`
     CMD="$BILTY  --dynet-seed 1512141834 --dynet-mem 1500 \
         --train $TRAIN_FILE --dev $DEV_FILE \
         --in_dim 64 --c_in_dim 100 --trainer sgd --iters 20 --sigma 0.2 \
