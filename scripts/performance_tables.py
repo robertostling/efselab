@@ -2,6 +2,8 @@ import re
 import os.path
 import glob
 import sys
+from collections import defaultdict
+
 
 def get_ud_names(ud_path):
     names = {}
@@ -34,12 +36,30 @@ def bilty_dev_table(path):
             table[lang] = err
     return table
 
+def efselab_table(filename):
+    lang, part = None, None
+    part_table = defaultdict(dict)
+    with open(filename) as f:
+        for line in f:
+            m = re.match(r'(\S+)\s+(dev|test)', line)
+            if m:
+                lang, part = m.group(1), m.group(2)
+                continue
+            m = re.match(r'Error rate: (\d+\.\d+)%', line)
+            if m:
+                err = float(m.group(1)) / 100.0
+                part_table[part][lang] = err
+                continue
+            raise ValueError(line)
+    return part_table
 
 if __name__ == '__main__':
     bilty_table = bilty_dev_table(sys.argv[1])
+    efselab_table = efselab_table(sys.argv[2])['dev']
 
-    table = sorted([(UD_NAMES[code], err)
-                    for code, err in bilty_table.items()])
-    for name, err in table:
-        print(r'%s & %.1f \\' % (name, 100*err))
+    common_codes = set(bilty_table.keys()) & set(efselab_table.keys())
+    table = [(UD_NAMES[code], bilty_table[code], efselab_table[code])
+             for code in common_codes]
+    for name, bilty_err, efselab_err in sorted(table):
+        print(r'%s & %.1f & %.1f \\' % (name, 100*bilty_err, 100*efselab_err))
 

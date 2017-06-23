@@ -9,9 +9,7 @@ def convert(conllu, tab):
                 print(file=outf)
             else:
                 fields = line.split('\t')
-                if '-' in fields[0]:
-                    pass
-                else:
+                if fields[0].isnumeric():
                     print(fields[1] + '\t' + fields[3], file=outf)
 
 
