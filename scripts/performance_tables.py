@@ -4,6 +4,7 @@ import glob
 import sys
 from collections import defaultdict
 
+import numpy as np
 
 def get_ud_names(ud_path):
     names = {}
@@ -27,7 +28,7 @@ def bilty_dev_error(filename):
                 if err < best_err: best_err = err
     return None if best_err > 1.0 else best_err
 
-def bilty_dev_table(path):
+def read_bilty_dev_table(path):
     table = {}
     for filename in glob.glob(os.path.join(path, '*.err')):
         err = bilty_dev_error(filename)
@@ -36,7 +37,12 @@ def bilty_dev_table(path):
             table[lang] = err
     return table
 
-def efselab_table(filename):
+def read_udpipe_table(filename):
+    with open(filename) as f:
+        data = [line.split() for line in f]
+    return {t[0]:1-float(t[1])/100 for t in data if len(t) == 2}
+
+def read_efselab_table(filename):
     lang, part = None, None
     part_table = defaultdict(dict)
     with open(filename) as f:
@@ -54,12 +60,48 @@ def efselab_table(filename):
     return part_table
 
 if __name__ == '__main__':
-    bilty_table = bilty_dev_table(sys.argv[1])
-    efselab_table = efselab_table(sys.argv[2])['dev']
+    bilty_table = read_bilty_dev_table(sys.argv[1])
+    udpipe_table = read_udpipe_table(sys.argv[2])
+    efselab_table = read_efselab_table(sys.argv[3])['dev']
 
-    common_codes = set(bilty_table.keys()) & set(efselab_table.keys())
-    table = [(UD_NAMES[code], bilty_table[code], efselab_table[code])
-             for code in common_codes]
-    for name, bilty_err, efselab_err in sorted(table):
-        print(r'%s & %.1f & %.1f \\' % (name, 100*bilty_err, 100*efselab_err))
+    common_codes = set(bilty_table.keys()) & set(efselab_table.keys()) & \
+                   set(udpipe_table.keys())
+    table = sorted(
+            (UD_NAMES[code],
+             bilty_table[code], udpipe_table[code], efselab_table[code])
+            for code in common_codes)
+
+    def process_row(row):
+        name = row[0]
+        err = row[1:]
+        err = [round(100*x, 1) for x in err]
+        min_err = min(err)
+        res = [(r'\textbf{%.1f}' if x == min_err else '%.1f') % x for x in err]
+        return [name] + res
+
+    table_err = np.array([row[1:] for row in table])
+
+    if len(table) % 2 != 0: table.append(['']*len(table[0]))
+
+    for col1, col2 in zip(table[:round(len(table)/2)],
+                          table[round(len(table)/2):]):
+        print(' & '.join(process_row(col1) + process_row(col2)) + r' \\')
+
+    #for row in sorted(table):
+    #    name = row[0]
+    #    err = row[1:]
+    #    err = [round(100*x, 1) for x in err]
+    #    min_err = min(err)
+    #    res = [(r'\textbf{%.1f}' if x == min_err else '%.1f') % x for x in err]
+    #    print(r'%s & %s \\' % (name, ' & '.join(res)))
+
+    best_count = np.sum(
+            (np.round(table_err*100, 1) == 
+             np.min(np.round(table_err*100, 1), axis=1, keepdims=True)),
+            axis=0).flatten()
+
+    print(r'\midrule')
+    print(r'Mean error rate & %s & Lowest error for $n$ languages & %s \\' % (
+        ' & '.join('%.1f' % x for x in np.mean(table_err*100, axis=0)),
+        ' & '.join(map(str, best_count))))
 
