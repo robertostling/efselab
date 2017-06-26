@@ -5,7 +5,7 @@
 # this setting (which launches one job per core):
 #N_CORES="+0"
 
-N_CORES="8"
+N_CORES="12"
 
 # Serial execution (does not require GNU parallel):
 #N_CORES="1"

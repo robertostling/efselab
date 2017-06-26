@@ -15,8 +15,7 @@
 
 export LD_PRELOAD=/opt/intel/mkl/lib/intel64/libmkl_core.so:/opt/intel/mkl/lib/intel64/libmkl_sequential.so
 
-#TRAIN_FILES=`ls udv2/*-ud-train.tab`
-TRAIN_FILES=`ls udv2/en-ud-train.tab udv2/fi-ud-train.tab udv2/ru_syntagrus-ud-train.tab`
+TRAIN_FILES=`ls udv2/*-ud-train.tab`
 
 BILTY="python3 ../../local/bilstm-aux/src/bilty.py"
 

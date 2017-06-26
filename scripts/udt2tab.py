@@ -18,9 +18,23 @@ if __name__ == '__main__':
 
     ud_path, out_path = sys.argv[1:]
 
-    for conllu in glob.glob(os.path.join(ud_path, '*/*-ud-*.conllu')):
-        base = os.path.splitext(os.path.basename(conllu))[0]
-        tab = os.path.join(out_path, base + '.tab')
-        print('Converting %s...' % base, flush=True)
-        convert(conllu, tab)
+    if os.path.basename(ud_path) == 'ud-test-v2.0-conll2017':
+        for conllu in glob.glob(os.path.join(
+                ud_path,'gold', 'conll17-ud-test-2017-05-09', '*.conllu')):
+            lang = os.path.splitext(os.path.basename(conllu))[0]
+            tab = os.path.join(out_path, lang + '-ud-test.tab')
+            if os.path.exists(tab):
+                print('Refusing to overwrite %s' % tab, flush=True)
+            else:
+                print('Converting %s...' % lang, flush=True)
+                convert(conllu, tab)
+    else:
+        for conllu in glob.glob(os.path.join(ud_path, '*/*-ud-*.conllu')):
+            base = os.path.splitext(os.path.basename(conllu))[0]
+            tab = os.path.join(out_path, base + '.tab')
+            if os.path.exists(tab):
+                print('Refusing to overwrite %s' % tab, flush=True)
+            else:
+                print('Converting %s...' % base, flush=True)
+                convert(conllu, tab)
 

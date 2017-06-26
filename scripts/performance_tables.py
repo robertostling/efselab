@@ -13,34 +13,16 @@ def get_ud_names(ud_path):
         name = name.replace('_', ' ')
         if '-' in name: name = name.replace('-', ' (') + ')'
         code = os.path.basename(filename)[:-16]
+        name = name.replace('Ancient Greek', r'Anc.\ Greek')
         names[code] = name
     return names
 
 UD_NAMES = get_ud_names('/home/corpora/ud/ud-treebanks-v2.0')
 
-def bilty_dev_error(filename):
-    best_err = 2.0
-    with open(filename) as f:
-        for line in f:
-            m = re.match(r'dev accuracy:\s+(0\.\d+)', line)
-            if m:
-                err = 1 - float(m.group(1))
-                if err < best_err: best_err = err
-    return None if best_err > 1.0 else best_err
-
-def read_bilty_dev_table(path):
-    table = {}
-    for filename in glob.glob(os.path.join(path, '*.err')):
-        err = bilty_dev_error(filename)
-        if err is not None:
-            lang = os.path.basename(filename)[:-4]
-            table[lang] = err
-    return table
-
-def read_udpipe_table(filename):
+def read_table(filename, scale):
     with open(filename) as f:
         data = [line.split() for line in f]
-    return {t[0]:1-float(t[1])/100 for t in data if len(t) == 2}
+    return {t[0]:1-float(t[1])*scale for t in data if len(t) == 2}
 
 def read_efselab_table(filename):
     lang, part = None, None
@@ -60,11 +42,16 @@ def read_efselab_table(filename):
     return part_table
 
 if __name__ == '__main__':
-    bilty_table = read_bilty_dev_table(sys.argv[1])
-    udpipe_table = read_udpipe_table(sys.argv[2])
-    efselab_table = read_efselab_table(sys.argv[3])['dev']
+    if len(sys.argv[1:]) != 3:
+        print('Usage: %s bilty.txt udpipe.txt efselab.txt' % sys.argv[0])
+        sys.exit(1)
+    bilty_table = read_table(sys.argv[1], scale=1.0)
+    udpipe_table = read_table(sys.argv[2], scale=0.01)
+    efselab_table = read_efselab_table(sys.argv[3])['test']
 
     common_codes = set(bilty_table.keys()) & set(efselab_table.keys()) & \
+                   set(udpipe_table.keys())
+    union_codes = set(bilty_table.keys()) | set(efselab_table.keys()) | \
                    set(udpipe_table.keys())
     table = sorted(
             (UD_NAMES[code],
@@ -72,6 +59,7 @@ if __name__ == '__main__':
             for code in common_codes)
 
     def process_row(row):
+        if all(x is None for x in row): return ['' for _ in row]
         name = row[0]
         err = row[1:]
         err = [round(100*x, 1) for x in err]
@@ -81,7 +69,7 @@ if __name__ == '__main__':
 
     table_err = np.array([row[1:] for row in table])
 
-    if len(table) % 2 != 0: table.append(['']*len(table[0]))
+    if len(table) % 2 != 0: table.append([None]*len(table[0]))
 
     for col1, col2 in zip(table[:round(len(table)/2)],
                           table[round(len(table)/2):]):
@@ -101,7 +89,22 @@ if __name__ == '__main__':
             axis=0).flatten()
 
     print(r'\midrule')
-    print(r'Mean error rate & %s & Lowest error for $n$ languages & %s \\' % (
+    print((r'\multicolumn{8}{c}{Summary statistics below refer to all %d '
+           r'treebanks, in both columns above} \\') % len(common_codes))
+    print(r'\midrule')
+    print(r'Mean error rate & %s & No.\ of (shared) top ranks & %s \\' % (
         ' & '.join('%.1f' % x for x in np.mean(table_err*100, axis=0)),
         ' & '.join(map(str, best_count))))
+
+
+    languages = {code.split('_')[0] for code in common_codes}
+    print('%d treebanks in %d languages evaluated' % (
+        len(common_codes), len(languages)), file=sys.stderr)
+
+    print('bilty is missing: %s' % ' '.join(
+        union_codes - set(bilty_table.keys())), file=sys.stderr)
+    print('udpipe is missing: %s' % ' '.join(
+        union_codes - set(udpipe_table.keys())), file=sys.stderr)
+    print('efselab is missing: %s' % ' '.join(
+        union_codes - set(efselab_table.keys())), file=sys.stderr)
 
