@@ -19,6 +19,78 @@ def get_ud_names(ud_path):
 
 UD_NAMES = get_ud_names('/home/corpora/ud/ud-treebanks-v2.0')
 
+# for filename in `ls *-train.tab`; do echo `grep -v "^$" $filename | wc -l` $filename | sort -n | sed 's/-ud-train.tab//'; done | tee ../datasize.txt
+
+TRAIN_SIZE = {s.split()[1]:int(s.split()[0]) for s in '''
+590819 ar_nyuad
+223881 ar
+3975 be
+124336 bg
+417587 ca
+6804 cop
+472608 cs_cac
+16400 cs_cltt
+1173282 cs
+37432 cu
+80378 da
+269626 de
+41212 el
+50095 en_lines
+25871 en_partut
+204585 en
+444617 es_ancora
+382436 es
+22525 et
+72974 eu
+121064 fa
+127602 fi_ftb
+162621 fi
+6396 fr_partut
+50561 fr_sequoia
+356464 fr
+3183 ga
+4855 gl_treegal
+79329 gl
+35024 got
+184382 grc_proiel
+159895 grc
+137680 he
+281057 hi
+169283 hr
+20166 hu
+97531 id
+28844 it_partut
+270703 it
+161902 ja
+52328 ko
+270403 la_ittb
+147044 la_proiel
+8018 la
+3210 lt
+34667 lv
+81243 nl_lassysmall
+186467 nl
+243887 no_bokmaal
+245330 no_nynorsk
+62501 pl
+255755 pt_br
+206740 pt
+185113 ro
+870033 ru_syntagrus
+75964 ru
+695 sa
+80575 sk
+9487 sl_sst
+112530 sl
+48325 sv_lines
+66645 sv
+6329 ta
+38082 tr
+478 uk
+108690 ur
+20285 vi
+98608 zh'''.strip().split('\n')}
+
 def read_table(filename, scale):
     with open(filename) as f:
         data = [line.split() for line in f]
@@ -54,13 +126,13 @@ if __name__ == '__main__':
     union_codes = set(bilty_table.keys()) | set(efselab_table.keys()) | \
                    set(udpipe_table.keys())
     table = sorted(
-            (UD_NAMES[code],
+            (code,
              bilty_table[code], udpipe_table[code], efselab_table[code])
             for code in common_codes)
 
     def process_row(row):
         if all(x is None for x in row): return ['' for _ in row]
-        name = row[0]
+        name = UD_NAMES[row[0]]
         err = row[1:]
         err = [round(100*x, 1) for x in err]
         min_err = min(err)
@@ -107,4 +179,39 @@ if __name__ == '__main__':
         union_codes - set(udpipe_table.keys())), file=sys.stderr)
     print('efselab is missing: %s' % ' '.join(
         union_codes - set(efselab_table.keys())), file=sys.stderr)
+
+    import matplotlib.pyplot as plt
+    #table = sorted(
+    #        (UD_NAMES[code],
+    #         bilty_table[code], udpipe_table[code], efselab_table[code])
+    #        for code in common_codes)
+
+    from matplotlib.font_manager import FontProperties
+    prop = FontProperties()
+    prop.set_family('serif')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('n: size of training data (tokens)', fontproperties=prop)
+    plt.ylabel('e: PoS tagging error rate (%)', fontproperties=prop)
+    table = [row for row in table if not None in row]
+    train_sizes = [TRAIN_SIZE[code] for code,_,_,_ in table]
+    bilty_acc = [100*bilty for _,bilty,_,_ in table]
+    efselab_acc = [100*efselab for _,_,_,efselab in table]
+    bilty_ax = plt.scatter(train_sizes, bilty_acc, marker='o', c='b')
+    efselab_ax = plt.scatter(train_sizes, efselab_acc, marker='s', c='r')
+    plt.legend([bilty_ax, efselab_ax],
+               ['bilty (Plank et al., 2016)', 'efselab (ours)'],
+               prop=prop)
+    from scipy.stats import linregress
+    a, b, _, _, _ = linregress(np.log10(train_sizes), np.log10(bilty_acc))
+    print(r'bilty: e = %.2f \cdot n^{%.2f})' % (
+        np.power(10, b), a), file=sys.stderr)
+    plt.plot([200, 2000000], np.power(10, np.log10([200, 2000000])*a+b), 'b--')
+    a, b, _, _, _ = linregress(np.log10(train_sizes), np.log10(efselab_acc))
+    print(r'efselab: e = %.2f \cdot n^{%.2f})' % (
+        np.power(10, b), a), file=sys.stderr)
+    plt.plot([200, 2000000], np.power(10, np.log10([200, 2000000])*a+b), 'r-.')
+    plt.axis((200, 2000000, 1, 100))
+    plt.savefig('datasize.pdf')
+    plt.show()
 
