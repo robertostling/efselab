@@ -187,6 +187,7 @@ if __name__ == '__main__':
     #        for code in common_codes)
 
     from matplotlib.font_manager import FontProperties
+    import matplotlib.patches as mpatches
     prop = FontProperties()
     prop.set_family('serif')
     plt.xscale('log')
@@ -197,11 +198,24 @@ if __name__ == '__main__':
     train_sizes = [TRAIN_SIZE[code] for code,_,_,_ in table]
     bilty_acc = [100*bilty for _,bilty,_,_ in table]
     efselab_acc = [100*efselab for _,_,_,efselab in table]
-    bilty_ax = plt.scatter(train_sizes, bilty_acc, marker='o', c='b')
-    efselab_ax = plt.scatter(train_sizes, efselab_acc, marker='s', c='r')
-    plt.legend([bilty_ax, efselab_ax],
+    bilty_ax = plt.scatter(train_sizes, bilty_acc, marker='o', edgecolors='b',
+            facecolors=['b' if x<=y else 'none'
+                        for x,y in zip(bilty_acc,efselab_acc)])
+    efselab_ax = plt.scatter(train_sizes, efselab_acc, marker='s',
+            edgecolors='r', facecolors=[
+                'r' if x>=y else 'none'
+                for x,y in zip(bilty_acc,efselab_acc)])
+    #red_patch = mpatches.Patch(color='red', label='efselab (ours)')
+    #blue_patch = mpatches.Patch(color='blue', label='bilty (Plank et al., 2016)')
+    #plt.legend(handles=[blue_patch, red_patch], prop=prop)
+    red_square, = plt.plot(0, "rs")
+    blue_dot, = plt.plot(0, "bo")
+    plt.legend([blue_dot, red_square],
                ['bilty (Plank et al., 2016)', 'efselab (ours)'],
                prop=prop)
+    #plt.legend([bilty_ax, efselab_ax],
+    #           ['bilty (Plank et al., 2016)', 'efselab (ours)'],
+    #           prop=prop)
     from scipy.stats import linregress
     a, b, _, _, _ = linregress(np.log10(train_sizes), np.log10(bilty_acc))
     print(r'bilty: e = %.2f \cdot n^{%.2f})' % (
