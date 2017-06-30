@@ -94,6 +94,91 @@ For a more detailed description of the command-line options, run:
 
     ./swe_pipeline.py --help
 
+## Accuracy
+
+These evaluations are performed with the 17-element PoS tagset from Universal
+Dependencies version 2. The Swedish model in the leftmost column of the first
+table uses additional data, all other models use only the training part of the
+corresponding Universal Dependencies treebank.
+
+### Swedish
+
+| Test data                   | Swedish | Generic |
+|:--------------------------- | ----:| ----:|
+| Swedish UD treebank         | 97.7 | 96.3 |
+| Swedish (LinES) UD treebank | 91.9 | 95.0 |
+
+
+### Universal Dependencies treebanks (version 2.0)
+
+| Treebank | Accuracy |
+|:-------- | --------:|
+| Anc.\ Greek | 87.7 |
+| Anc.\ Greek (PROIEL) | 96.5 |
+| Arabic | 94.8 |
+| Basque | 94.2 |
+| Belarusian | 90.2 |
+| Bulgarian | 98.0 |
+| Catalan | 97.6 |
+| Chinese | 91.0 |
+| Coptic | 95.1 |
+| Croatian | 96.4 |
+| Czech | 98.6 |
+| Czech (CAC) | 98.8 |
+| Czech (CLTT) | 97.5 |
+| Danish | 96.3 |
+| Dutch | 92.3 |
+| Dutch (LassySmall) | 97.6 |
+| English | 94.8 |
+| English (LinES) | 95.3 |
+| English (ParTUT) | 94.7 |
+| Estonian | 90.3 |
+| Finnish | 95.8 |
+| Finnish (FTB) | 93.2 |
+| French | 96.6 |
+| French (ParTUT) | 94.1 |
+| French (Sequoia) | 97.4 |
+| Galician | 97.4 |
+| Galician (TreeGal) | 90.4 |
+| German | 92.8 |
+| Gothic | 95.7 |
+| Greek | 96.8 |
+| Hebrew | 95.5 |
+| Hindi | 96.5 |
+| Hungarian | 93.4 |
+| Indonesian | 92.9 |
+| Irish | 84.9 |
+| Italian | 97.7 |
+| Japanese | 96.2 |
+| Korean | 94.0 |
+| Latin | 84.4 |
+| Latin (ITTB) | 97.3 |
+| Latin (PROIEL) | 95.8 |
+| Latvian | 91.1 |
+| Lithuanian | 79.1 |
+| Norwegian (Bokmaal) | 97.1 |
+| Norwegian (Nynorsk) | 96.7 |
+| Old Church Slavonic | 95.3 |
+| Persian | 96.6 |
+| Polish | 97.0 |
+| Portuguese | 96.6 |
+| Portuguese (BR) | 96.9 |
+| Romanian | 97.2 |
+| Russian | 95.9 |
+| Sanskrit | 61.0 |
+| Slovak | 95.2 |
+| Slovenian | 96.8 |
+| Slovenian (SST) | 89.0 |
+| Spanish | 95.9 |
+| Spanish (AnCora) | 97.9 |
+| Swedish | 96.3 |
+| Swedish (LinES) | 95.0 |
+| Tamil | 86.6 |
+| Turkish | 94.3 |
+| Ukrainian | 61.9 |
+| Urdu | 93.3 |
+| Vietnamese | 88.3 |
+
 ## Performance-related options
 
 The `--beam-size` argument of the build scripts controls the beam size of the

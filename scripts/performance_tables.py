@@ -126,9 +126,16 @@ if __name__ == '__main__':
     union_codes = set(bilty_table.keys()) | set(efselab_table.keys()) | \
                    set(udpipe_table.keys())
     table = sorted(
-            (code,
+            [(code,
              bilty_table[code], udpipe_table[code], efselab_table[code])
-            for code in common_codes)
+            for code in common_codes],
+            key=lambda t: UD_NAMES[t[0]])
+
+    with open('results.md', 'w') as outf:
+        print('| Treebank | Accuracy |', file=outf)
+        print('|:-------- | --------:|', file=outf)
+        for code, _, _, err in table:
+            print('| %s | %.1f |' % (UD_NAMES[code], 100*(1-err)), file=outf)
 
     def process_row(row):
         if all(x is None for x in row): return ['' for _ in row]
