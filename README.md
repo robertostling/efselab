@@ -155,5 +155,6 @@ feedback.
 
 The Swedish pipeline wrapper script (including the tokenizer) was originally
 written by Filip Salomonsson (Uppsala), later modified by Robert Östling
-(Stockholm/Helsinki) and Aaron Smith (Uppsala).
+(Stockholm/Helsinki) and Aaron Smith (Uppsala). Joakim Nivre and Jesper Näsman
+(Uppsala) contributed to different parts of the Swedish pipeline.
 
