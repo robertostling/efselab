@@ -12,6 +12,7 @@ import sys
 import tempfile
 import re
 from subprocess import Popen
+import gzip
 
 from commandline import create_parser, validate_options
 from conll import tagged_to_tagged_conll
@@ -140,7 +141,9 @@ def process_file(options, filename, tmp_dir, models, non_capitalized=None):
     print("done.", file=sys.stderr)
 
 def run_tokenization(options, filename, non_capitalized=None):
-    with open(filename, "r", encoding="utf-8") as input_file:
+    with (gzip.open(filename, "rt", encoding="utf-8")
+            if filename.endswith(".gz")
+            else open(filename, "r", encoding="utf-8")) as input_file:
         data = input_file.read()
 
         if options.skip_tokenization:

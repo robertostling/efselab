@@ -19,6 +19,13 @@ In this way, even rather complex feature templates using word clusters and
 external lexicons can generate taggers capable of around a million tokens per
 second.
 
+## Description
+
+A detailed description of the algorithms used along with evaluations can be
+found in the following paper:
+
+ * Robert Östling (2018). [Part of Speech Tagging: Shallow or Deep Learning?](http://dx.doi.org/10.3384/nejlt.2000-1533.1851). North European Journal of Language Technology (5), 1--15.
+
 ## Installing and using efselab
 
 `efselab` is implemented in Python/C and requires the following software to be
