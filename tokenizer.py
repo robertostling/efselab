@@ -107,10 +107,15 @@ class PeekableIterator:
         if n is None:
             n = 1
         while len(self._cache) < n:
-            self._cache.append(next(self._iterable))
+            try:
+                item = next(self._iterable)
+                self._cache.append(item)
+            except StopIteration:
+                break
 
     def __next__(self, n=None):
         self._fill_cache(n)
+        if not self._cache: raise StopIteration()
         if n is None:
             value = self._cache.pop(0)
         else:
@@ -119,6 +124,7 @@ class PeekableIterator:
 
     def peek(self, n=None):
         self._fill_cache(n)
+        if not self._cache: raise StopIteration()
         if n is None:
             value = self._cache[0]
         else:
@@ -198,13 +204,16 @@ def join_abbrevs(abbrevs, tokens, non_capitalized=False):
             # Token not known to start an abbr.; carry on.
             yield token
             # Aaand now for sentence segmentation.
-            next_token = tokens.peek()
-            if None not in (token, next_token) and \
-                    (not was_abbrev) and \
-                    (token[-1] in ".:!?" or smiley_re.match(token)) \
-                    and (non_capitalized or next_token[0].isupper()):
-                yield None
-            was_abbrev = False
+            try:
+                next_token = tokens.peek()
+                if None not in (token, next_token) and \
+                        (not was_abbrev) and \
+                        (token[-1] in ".:!?" or smiley_re.match(token)) \
+                        and (non_capitalized or next_token[0].isupper()):
+                    yield None
+                was_abbrev = False
+            except StopIteration:
+                pass
 
 def group_sentences(tokens, max_len=200):
     """Group tokens into sentences, based on None tokens"""
