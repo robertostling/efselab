@@ -1,16 +1,22 @@
-#!/usr/bin/env python3
-from distutils.core import setup, Extension
+from setuptools import find_packages, setup, Extension
 from Cython.Build import cythonize
 
 fasthash = Extension(
-    name='fasthash',
-    sources=['fasthash.c'],
-    libraries=[],
-    extra_compile_args=['-Wall'],
-    extra_link_args=[],
+    name="pefselab.fasthash",
+    sources=["pefselab/fasthash.c"],
+    extra_compile_args=["-Wall"],
+)
+
+lemmatize = Extension(
+    name="pefselab.lemmatize",
+    sources=["pefselab/lemmatize.pyx"],
 )
 
 setup(
-    name='Fast hashing',
-    ext_modules=cythonize('lemmatize.pyx') + [fasthash],
+    name="pefselab",
+    description="packaged version of Östling et al. efselab algorithm.",
+    packages=find_packages(),
+    ext_modules=cythonize([lemmatize, fasthash]),
+    include_package_data=True,
+    package_data={"": ["build*.py, *.pyx, *.c, *.perl"]},
 )

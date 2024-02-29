@@ -1,7 +1,7 @@
 from operator import itemgetter
 from math import ceil, log2
 
-import fasthash
+from . import fasthash
 
 def hash32trans(s):
     return fasthash.hashlongs32(tuple(ord(c) for c in s))

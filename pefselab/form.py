@@ -1,6 +1,7 @@
 import sys
 from collections import defaultdict
-import hashlib, math
+import hashlib
+import math
 
 from tagset import Tag
 

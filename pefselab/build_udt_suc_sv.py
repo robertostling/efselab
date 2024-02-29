@@ -2,12 +2,12 @@
 # Treebank, with SUC tags given as input. The purpose of this is to convert
 # SUC-tagged data to UD tags, as part of the Swedish annotation pipeline.
 
-from options import args
-from configuration import Configuration
-from form import *
-from tagset import Tagset
-from taglexicon import TagLexicon
-from tools import read_dict
+from .options import args
+from .configuration import Configuration
+from .form import TextField, FeatureSet, normalize
+from .tagset import Tagset
+from .taglexicon import TagLexicon
+from .tools import read_dict
 
 # There are plenty of other configuration options (see configuration.py), the
 # only mandatory one is the name of the model, which will be used for the C

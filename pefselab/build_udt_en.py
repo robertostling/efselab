@@ -7,13 +7,13 @@
 # This could easily be generalized to create taggers for each of the languages
 # in the treebank, but that is left as an exercise to the reader (for now).
 
-from options import args
-from configuration import Configuration
-from form import *
-from tagset import Tagset
-from taglexicon import TagLexicon
-from wclexicon import WCLexicon
-from tools import read_dict
+from .options import args
+from .configuration import Configuration
+from .form import TextField, FeatureSet, suffix, prefix, normalize, abstract, delexicalize
+from .tagset import Tagset
+from .taglexicon import TagLexicon
+from .wclexicon import WCLexicon
+from .tools import read_dict
 
 # There are plenty of other configuration options (see configuration.py), the
 # only mandatory one is the name of the model, which will be used for the C
@@ -67,7 +67,7 @@ fs = FeatureSet([
         # Tag bigram and trigram features
         (this_tag, last_tag),
         (this_tag, last_tag, last_last_tag),
-       
+
         # Word class features
         (this_tag, last_wc),
         (this_tag, this_wc),

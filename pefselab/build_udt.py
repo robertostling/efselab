@@ -1,17 +1,16 @@
 # Generic Universal Dependencies treebank model
-# 
+#
 # Use scripts/conllu2tab.py to convert the CoNLL-U format to the tab format
 # used by efselab.
 
 import os.path
 
-from options import args
-from configuration import Configuration
-from form import *
-from tagset import Tagset
-from taglexicon import TagLexicon
-from wclexicon import WCLexicon
-from tools import read_dict
+from .options import args
+from .configuration import Configuration
+from .form import TextField, FeatureSet, suffix, prefix, normalize, abstract, delexicalize
+from .tagset import Tagset
+from .taglexicon import TagLexicon
+from .tools import read_dict
 
 train_filename = args.train
 lang = os.path.basename(train_filename).split('-')[0]
