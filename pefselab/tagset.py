@@ -1,4 +1,5 @@
-import math, itertools
+import math
+import itertools
 
 class Tagset:
     def __init__(self, tags, config):

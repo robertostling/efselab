@@ -3,13 +3,13 @@
 # This depends on data files that require a signed license agreement.
 # http://www.ling.su.se/suc
 
-from options import args
-from configuration import Configuration
-from form import *
-from tagset import Tagset
-from taglexicon import TagLexicon
-from wclexicon import WCLexicon
-from tools import read_dict
+from .options import args
+from .configuration import Configuration
+from .form import TextField, FeatureSet, suffix, prefix, normalize, abstract, delexicalize
+from .tagset import Tagset
+from .taglexicon import TagLexicon
+from .wclexicon import WCLexicon
+from .tools import read_dict
 
 import sys
 

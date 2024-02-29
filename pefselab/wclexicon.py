@@ -1,8 +1,8 @@
 from math import ceil, log2
 
-from taglexicon import hash32trans, hash64trans
-from fasthash import hash32, hash64
-from form import Lookup
+from .taglexicon import hash32trans, hash64trans
+from .fasthash import hash32, hash64
+from .form import Lookup
 
 class WCLexicon:
     def __init__(self, name, items, config):

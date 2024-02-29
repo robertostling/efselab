@@ -1,6 +1,8 @@
-import os, subprocess, tempfile, sys
+import os
+import subprocess
+import sys
 
-import translation
+from . import translation
 
 class Configuration:
     def __init__(self, name, args):

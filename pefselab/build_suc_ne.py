@@ -2,13 +2,13 @@
 # Internet Corpus (SIC). It requires SUC-tagged and lemmatized data as input,
 # and is intended for use with the Swedish annotation pipeline.
 
-from options import args
-from configuration import Configuration
-from form import *
-from tagset import Tagset
-from taglexicon import TagLexicon
-from wclexicon import WCLexicon
-from tools import read_dict
+from .options import args
+from .configuration import Configuration
+from .form import TextField, FeatureSet, suffix, prefix, normalize, abstract, delexicalize
+from .tagset import Tagset
+from .taglexicon import TagLexicon
+from .wclexicon import WCLexicon
+from .tools import read_dict
 
 import sys
 
