@@ -3,7 +3,7 @@ from collections import defaultdict
 import hashlib
 import math
 
-from tagset import Tag
+from .tagset import Tag
 
 
 def fixed_hash(seed, bits):
