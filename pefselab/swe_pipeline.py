@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tokenize, tag and parse Swedish plain text data.
 
 This was originally the pipeline by Filip Salomonsson for the Swedish
@@ -6,19 +5,18 @@ Treebank (using hunpos for tagging), later modified by Robert Östling to use
 efselab and Python 3.
 """
 
-import os
 import shutil
 import sys
 import tempfile
 import re
-from subprocess import Popen
 import gzip
+from pathlib import Path
 
-from commandline import create_parser, validate_options
-from conll import tagged_to_tagged_conll
-from lemmatize import SUCLemmatizer
-from tagger import SucTagger, SucNETagger, UDTagger
-from tokenizer import build_sentences
+from pefselab.tools import get_data_dir
+
+from .lemmatize import SUCLemmatizer
+from .tagger import SucTagger, SucNETagger, UDTagger
+from .tokenizer import build_sentences
 
 __authors__ = """
 Filip Salomonsson <filip.salomonsson@gmail.com>
@@ -26,87 +24,103 @@ Robert Östling <robert.ostling@helsinki.fi>
 Aaron Smith <aaron.smith@lingfil.uu.se>
 """
 
-SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-
 MAX_TOKEN = 256
 
-def main():
-    parser = create_parser()
-    options, args = parser.parse_args()
-    validate_options(options, args)
-    run_pipeline(options, args)
+class SwedishPipeline:
+    def __init__(
+        self,
+        filenames: list[str],
+        tagger: str | None = None,
+        udtagger: str | None = None,
+        ner_tagger: str | None = None,
+        lemmatizer: bool | None = None,
+        output_dir: Path | str = Path("./output"),
+        parse_compability: bool = False,
+        non_capitalization: bool = False,
+        skip_tokenization: bool = False,
+        skip_segmentation: bool = False,
+        delete_tmp_dir: bool = True,
+    ):
+        if isinstance(output_dir, str):
+            self.output_dir: Path = Path(output_dir)
+        else:
+            self.output_dir: Path = output_dir
+        if self.output_dir.exists() and not self.output_dir.is_dir():
+            raise FileExistsError("Output dir exists and is not a directory!")
+        if not self.output_dir.exists():
+            self.output_dir.mkdir()
 
-def run_pipeline(options, args):
-    models = {
-        "suc_ne_tagger": None,
-        "suc_tagger": None,
-        "ud_tagger": None,
-        "lemmatizer": None,
-    }
-    if options.tagged or options.ner or options.parsed:
-        models["suc_tagger"] = SucTagger(options.tagging_model)
+        self.models: dict = {}
+        modeldir: Path = get_data_dir().joinpath("models")
+        if tagger and any((ner_tagger, parse_compability)):
+            self.models["suc_tagger"] = SucTagger(modeldir.joinpath(tagger + ".bin"))
+            if lemmatizer:
+                assert udtagger
+                self.models["ud_tagger"] = UDTagger(modeldir.joinpath(udtagger + ".bin"))
+        if ner_tagger:
+            self.models["suc_ne_tagger"] = SucNETagger(modeldir.joinpath(ner_tagger + ".bin"))
 
-        if options.lemmatized:
-            models["ud_tagger"] = UDTagger(options.ud_tagging_model)
+        # FIX: not elegant; but there is no other lemmatizer as of now?
+        if lemmatizer:
+            self.models["lemmatizer"] = SUCLemmatizer()
+            self.models["lemmatizer"].load(str(modeldir.joinpath("suc-saldo.lemmas")))
 
-    if options.ner:
-        models["suc_ne_tagger"] = SucNETagger(options.ner_model)
+        self.parse_compability: bool | None = parse_compability
+        self.non_capitalization: bool = non_capitalization
+        self.skip_tokenization: bool = skip_tokenization
+        self.skip_segmentation: bool = skip_segmentation
 
-    # Set up the working directory
-    tmp_dir = tempfile.mkdtemp("-stb-pipeline")
-    if options.parsed:
-        shutil.copy(
-            os.path.join(SCRIPT_DIR, options.parsing_model + ".mco"),
-            tmp_dir
+        self.tmpdir: Path = Path(tempfile.gettempdir()).joinpath("pefselabswpipe")
+        if not self.tmpdir.exists():
+            self.tmpdir.mkdir()
+
+        for filename in filenames:
+            self.__process_file(Path(filename))
+
+        # cleanup temporary directory
+        if delete_tmp_dir:
+            shutil.rmtree(self.tmpdir)
+            del self.tmpdir
+
+    def __process_file(self, filename: Path) -> None:
+        print("Processing %s..." % filename, file=sys.stderr)
+        tokenized_filename: Path = self.tmpdir.joinpath(
+            filename.with_suffix(".tok").name
         )
+        tagged_filename: Path = self.tmpdir.joinpath(filename.with_suffix(".tag").name)
+        ner_filename: Path = self.tmpdir.joinpath(filename.with_suffix(".ne").name)
 
-    if options.lemmatized:
-        models["lemmatizer"] = SUCLemmatizer()
-        models["lemmatizer"].load(options.lemmatization_model)
+        sentences: list = self.__run_tokenization(filename)
+        annotated_sentences: list = []
 
-    # Process each input file
-    for filename in args:
-        process_file(
-            options,
-            filename,
-            tmp_dir,
-            models,
-            (True if options.non_capitalized else None)
-        )
+        with (
+            open(tokenized_filename, "w", encoding="utf-8") as tokenized,
+            open(tagged_filename, "w", encoding="utf-8") as tagged,
+            open(ner_filename, "w", encoding="utf-8") as ner,
+        ):
+            for sentence in sentences:
+                self.__write_to_file(tokenized, sentence)
 
-    cleanup(options, tmp_dir)
+                if not any(
+                    [
+                        self.models.get("suc_tagger"),
+                        self.models.get("suc_ne_tagger"),
+                    ]
+                ):
+                    continue
 
-def process_file(options, filename, tmp_dir, models, non_capitalized=None):
-    print("Processing %s..." % filename, file=sys.stderr)
-
-    tokenized_filename = output_filename(tmp_dir, filename, "tok")
-    tagged_filename = output_filename(tmp_dir, filename, "tag")
-    ner_filename = output_filename(tmp_dir, filename, "ne")
-
-    sentences = run_tokenization(options, filename,
-            non_capitalized=non_capitalized)
-    annotated_sentences = []
-
-    with open(tokenized_filename, "w", encoding="utf-8") as tokenized, \
-            open(tagged_filename, "w", encoding="utf-8") as tagged, \
-            open(ner_filename, "w", encoding="utf-8") as ner:
-
-        # Run only one pass over sentences for writing to both files
-        for sentence in sentences:
-            write_to_file(tokenized, sentence)
-
-            if options.tagged or options.parsed or options.ner:
-                lemmas, ud_tags_list, suc_tags_list, suc_ne_list = \
-                    run_tagging_and_lemmatization(options, sentence, models)
+                (
+                    lemmas,
+                    ud_tags_list,
+                    suc_tags_list,
+                    suc_ne_list,
+                ) = self.__tag_and_lemmatize(sentence)
 
                 annotated_sentences.append(
                     zip(sentence, lemmas, ud_tags_list, suc_tags_list)
                 )
 
-                ud_tag_list = [
-                    ud_tags[:ud_tags.find("|")]
-                    for ud_tags in ud_tags_list
-                ]
+                ud_tag_list = [ud_tags[: ud_tags.find("|")] for ud_tags in ud_tags_list]
 
                 if lemmas and ud_tags_list:
                     line_tokens = sentence, suc_tags_list, ud_tag_list, lemmas
@@ -115,135 +129,85 @@ def process_file(options, filename, tmp_dir, models, non_capitalized=None):
 
                 lines = ["\t".join(line) for line in zip(*line_tokens)]
 
-                write_to_file(tagged, lines)
+                self.__write_to_file(tagged, lines)
 
-                if options.ner:
-                    ner_lines = [
-                        "\t".join(line)
-                        for line in zip(sentence, suc_ne_list)
-                    ]
+                if self.models.get("suc_ne_tagger"):
+                    ner_lines = ["\t".join(line) for line in zip(sentence, suc_ne_list)]
 
-                    write_to_file(ner, ner_lines)
+                    self.__write_to_file(ner, ner_lines)
 
-    parsed_filename = ""
-    if options.parsed:
-        parsed_filename = parse(
-            options, filename, annotated_sentences, tmp_dir
-        )
+        # write all results to output folder
+        if not self.skip_tokenization:
+            shutil.copy(tokenized_filename, self.output_dir)
+        if self.models.get("suc_tagger"):
+            shutil.copy(tagged_filename, self.output_dir)
+        if self.models.get("suc_ne_tagger"):
+            shutil.copy(ner_filename, self.output_dir)
 
-    write_to_output([
-        (options.tokenized, tokenized_filename, options.output_dir),
-        (options.tagged, tagged_filename, options.output_dir),
-        (options.parsed, parsed_filename, options.output_dir),
-        (options.ner, ner_filename, options.output_dir),
-    ])
+        # TODO: data structure for parsing using stanza
 
-    print("done.", file=sys.stderr)
+        print("Finished processing files.", file=sys.stderr)
 
-def run_tokenization(options, filename, non_capitalized=None):
-    with (gzip.open(filename, "rt", encoding="utf-8")
-            if filename.endswith(".gz")
-            else open(filename, "r", encoding="utf-8")) as input_file:
-        data = input_file.read()
+    def __tag_and_lemmatize(self, sentence: str) -> tuple:
+        lemmas = []
+        ud_tags_list = []
+        assert self.models.get("suc_tagger")
+        suc_tags_list = self.models["suc_tagger"].tag(sentence)
+        suc_ne_list = []
 
-        if options.skip_tokenization:
+        if self.models.get("lemmatizer"):
+            lemmas = [
+                self.models["lemmatizer"].predict(token, tag)
+                for token, tag in zip(sentence, suc_tags_list)
+            ]
+            ud_tags_list = self.models["ud_tagger"].tag(sentence, lemmas, suc_tags_list)
+
+            if self.models.get("suc_ne_tagger"):
+                suc_ne_list = self.models["suc_ne_tagger"].tag(
+                    list(zip(sentence, lemmas, suc_tags_list))
+                )
+
+        return lemmas, ud_tags_list, suc_tags_list, suc_ne_list
+
+    def __run_tokenization(
+        self, filename: Path
+    ) -> list:
+        with (
+            gzip.open(filename, "rt", encoding="utf-8")
+            if filename.suffix == ".gz"
+            else open(filename, "r", encoding="utf-8")
+        ) as input_file:
+            data = input_file.read()
+        if self.skip_tokenization:
             sentences = [
-                sentence.split('\n')
-                for sentence in data.split('\n\n')
+                sentence.split("\n")
+                for sentence in data.split("\n\n")
                 if sentence.strip()
             ]
-        elif options.skip_segmentation:
+        elif self.skip_segmentation:
             sentences = [
-                    build_sentences(line, segment=False)
-                    for line in data.split('\n')
-                    if line.strip()
+                build_sentences(line, segment=False)
+                for line in data.split("\n")
+                if line.strip()
             ]
         else:
-            if non_capitalized is None:
-                n_capitalized = len(re.findall(r'[\.!?] +[A-ZÅÄÖ]', data))
-                n_non_capitalized = len(re.findall(r'[\.!?] +[a-zåäö]', data))
-                non_capitalized = n_non_capitalized > 5*n_capitalized
-            sentences = build_sentences(data, non_capitalized=non_capitalized)
-
-    sentences = list(filter(bool,
-        [[token for token in sentence if len(token) <= MAX_TOKEN]
-            for sentence in sentences]))
-    return sentences
-
-def run_tagging_and_lemmatization(options, sentence, models):
-    lemmas = []
-    ud_tags_list = []
-    suc_tags_list = models["suc_tagger"].tag(sentence)
-    suc_ne_list = []
-
-    if options.lemmatized:
-        lemmas = [
-            models["lemmatizer"].predict(token, tag)
-            for token, tag in zip(sentence, suc_tags_list)
-        ]
-        ud_tags_list = models["ud_tagger"].tag(sentence, lemmas, suc_tags_list)
-
-        if options.ner:
-            suc_ne_list = models["suc_ne_tagger"].tag(
-                list(zip(sentence, lemmas, suc_tags_list))
+            if self.non_capitalization:
+                n_capitalized = len(re.findall(r"[\.!?] +[A-ZÅÄÖ]", data))
+                n_non_capitalized = len(re.findall(r"[\.!?] +[a-zåäö]", data))
+                self.non_capitalization = n_non_capitalized > 5 * n_capitalized
+            sentences = build_sentences(data, non_capitalized=self.non_capitalization)
+        sentences = list(
+            filter(
+                bool,
+                [
+                    [token for token in sentence if len(token) <= MAX_TOKEN]
+                    for sentence in sentences
+                ],
             )
+        )
+        return sentences
 
-    return lemmas, ud_tags_list, suc_tags_list, suc_ne_list
-
-def parse(options, filename, annotated_sentences, tmp_dir):
-    tagged_conll_filename = output_filename(tmp_dir, filename, "tag.conll")
-    parsed_filename = output_filename(tmp_dir, filename, "conll")
-    log_filename = output_filename(tmp_dir, filename, "log")
-
-    # The parser command line is dependent on the input and
-    # output files, so we build that one for each data file
-    parser_cmdline = [
-        "java",
-        "-Xmx2000m",
-        "-jar", os.path.expanduser(options.malt),
-        "-m", "parse",
-        "-i", tagged_conll_filename,
-        "-o", parsed_filename,
-        "-w", tmp_dir,
-        "-c", os.path.basename(options.parsing_model)
-    ]
-
-    # Conversion from .tag file to tagged.conll (input format for the parser)
-    tagged_conll_file = open(tagged_conll_filename, "w", encoding="utf-8")
-    tagged_to_tagged_conll(annotated_sentences, tagged_conll_file)
-    tagged_conll_file.close()
-
-    # Run the parser
-    with open(log_filename, "w", encoding="utf-8") as log_file:
-        returncode = Popen(
-            parser_cmdline, stdout=log_file, stderr=log_file
-        ).wait()
-
-    if returncode:
-        sys.exit("Parsing failed! See log file: %s" % log_filename)
-
-    return parsed_filename
-
-def write_to_file(file, lines):
-    for line in lines:
-        print(line, file=file)
-    print(file=file)
-
-def write_to_output(filename_mapping):
-    for should_copy, filename, output_dir in filename_mapping:
-        if should_copy:
-            shutil.copy(filename, output_dir)
-
-def cleanup(options, tmp_dir):
-    if not options.no_delete:
-        shutil.rmtree(tmp_dir)
-    else:
-        print("Leaving working directory as is: %s" % tmp_dir, file=sys.stderr)
-
-def output_filename(tmp_dir, filename, suffix):
-    directory, _ = os.path.splitext(filename)
-    basename = os.path.basename(directory)
-    return os.path.join(tmp_dir, "%s.%s" % (basename, suffix))
-
-if __name__ == '__main__':
-    main()
+    def __write_to_file(self, file, lines):
+        for line in lines:
+            print(line, file=file)
+        print(file=file)

@@ -8,9 +8,9 @@ from pathlib import Path
 from Cython.Build.Dependencies import subprocess
 import requests
 
-from .wrappers import Model, Info
+from .wrappers import Info
 from .configuration import Configuration
-from .tools import get_data_dir, conll2tab, read_dict, get_unique_tags
+from .tools import get_data_dir, conll2tab, read_dict
 from .tagset import Tagset
 from .form import (
     TextField,

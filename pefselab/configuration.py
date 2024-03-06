@@ -33,7 +33,10 @@ class Configuration:
         assert lexicon_hash_bits == partial_hash_bits
 
         self.name = name
+        # use_unicode doesn't currently change anything
         self.use_unicode = True
+        self.skip_generate = False
+        self.generate_python = True
         self.cc = "cc"
         self.cflags = cflags
 
@@ -55,26 +58,30 @@ class Configuration:
         generated_c_fp: Path = (
             get_data_dir().joinpath("models").joinpath(self.name + ".c")
         )
-        with open(generated_c_fp, "w") as f:
-            print("Generating C code to %s..." % f.name, file=sys.stderr)
-            self.c_emit(f, build_python=False)
-            f.flush()
+        if not self.skip_generate:
+            with open(generated_c_fp, "w") as f:
+                print("Generating C code to %s..." % f.name, file=sys.stderr)
+                self.c_emit(f, build_python=False)
+                f.flush()
 
-        subprocess.run(
-            ["cc"]  # TODO: implement config file with custom C compiler
-            + self.cflags
-            + ["-I", str(get_data_dir().joinpath("models"))]
-            + ["-o", str(get_data_dir().joinpath("models", self.name)), str(get_data_dir().joinpath("models", self.name + ".c"))]
-        )
+            subprocess.run(
+                ["cc"]  # TODO: implement config file with custom C compiler
+                + self.cflags
+                + ["-I", str(get_data_dir().joinpath("models"))]
+                + ["-o", str(get_data_dir().joinpath("models", self.name)), str(get_data_dir().joinpath("models", self.name + ".c"))]
+            )
 
         # generate and compile Python interface
         generated_cpy_fp: Path = (
             get_data_dir().joinpath("models").joinpath("py" + self.name + ".c")
         )
-        with open(generated_cpy_fp, "w") as f:
-            print("Generating C code to %s..." % f.name, file=sys.stderr)
-            self.c_emit(f, build_python=True)
-            f.flush()
+        if not self.skip_generate:
+            with open(generated_cpy_fp, "w") as f:
+                print("Generating C code to %s..." % f.name, file=sys.stderr)
+                self.c_emit(f, build_python=True)
+                f.flush()
+        if not self.generate_python:
+            return
         tagger = Extension(
             self.name,
             sources=[str(generated_cpy_fp)],

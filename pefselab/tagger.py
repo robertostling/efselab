@@ -1,7 +1,18 @@
-import udt_suc_sv
-import suc
-import suc_ne
-import collections
+import sys
+from collections.abc import Iterable
+from importlib import import_module
+from types import ModuleType
+from .tools import get_data_dir
+
+from pprint import pprint
+
+
+# very hacky but works; both for importing python modules and weights
+sys.path.append(f"{get_data_dir().joinpath('models')}")
+
+udt_suc_sv: ModuleType = import_module("udt_suc_sv")
+suc: ModuleType = import_module("suc")
+suc_ne: ModuleType = import_module("suc_ne")
 
 # Tags a sentence with SUC tags based on a trained model
 class SucTagger():
@@ -90,7 +101,7 @@ class UDTagger():
             self.tagger_weights = f.read()
 
     def _is_nonstring_iterable(self, value):
-        if not isinstance(value, collections.Iterable) or isinstance(value, str):
+        if not isinstance(value, Iterable) or isinstance(value, str):
             raise TypeError("Argument is not of the correct type")
 
     def tag(self, sentence, lemmas, suc_tags_list):
