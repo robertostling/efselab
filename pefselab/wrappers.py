@@ -7,7 +7,6 @@ from pathlib import Path
 import sys
 from importlib import import_module
 from types import ModuleType
-from typing import Iterable
 from .tools import get_data_dir
 
 class Model:
