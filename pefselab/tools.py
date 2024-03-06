@@ -11,7 +11,9 @@ from os.path import expanduser
 import sys
 
 
-def read_dict(filename, token_field, tag_field):
+def read_dict(
+    filename: str | Path, token_field: int, tag_field: int
+) -> tuple[set, defaultdict[str, set]]:
     """Read tagset + tag dictionary from corpus"""
     tags = set()
     norm_tags = defaultdict(set)
@@ -55,14 +57,16 @@ def conll2tab(lfp: list[Path], include_ne: bool = False) -> str:
             result += "\n"
     return result
 
+
 def get_unique_tags(tags: list[str]) -> list:
-    """ given list of complex tags, return the simple POS
+    """given list of complex tags, return the simple POS
     e.g: VERB|Aspect=PErf|Mood=Ind|Number=Plur -> VERB
     """
     unique_tags: list = list()
     for t in tags:
         unique_tags.append(t.split("|")[0])
     return list(set(unique_tags))
+
 
 def get_data_dir() -> Path:
     """returns the OS specific data directory; {data_dir}/{pefselab}"""
