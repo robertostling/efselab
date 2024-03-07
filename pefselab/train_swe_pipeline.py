@@ -38,7 +38,7 @@ def train_pipeline():
 def preprocessing_for_pipeline():
     modeldir: Path = get_data_dir().joinpath("models")
     if not modeldir.exists():
-        modeldir.mkdir()
+        modeldir.mkdir(parents=True)
     response = requests.get(SWEDATA_URL, stream=True)
     print(f"Accessing {SWEDATA_URL}...")
     if response.status_code != 200:
