@@ -1,3 +1,22 @@
+[project]
+name = "pefselab_skogsgren"
+version = "0.0.1"
+authors = [
+  { name="Gustaf Gren", email="6107181+skogsgren@users.noreply.github.com" },
+]
+description = "Packaged efselab"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/skogsgren/pefselab"
+Issues = "https://github.com/skogsgren/pefselab/issues"
+
 [build-system]
 requires = [
     "setuptools",
