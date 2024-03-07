@@ -5,7 +5,7 @@ contains code for creating a POS tagger using Universal Treebanks data.
 import tarfile
 import tempfile
 from pathlib import Path
-from Cython.Build.Dependencies import subprocess
+import subprocess
 import requests
 
 from .wrappers import Info
