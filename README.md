@@ -1,5 +1,7 @@
 # pefselab
 
+![build status](https://github.com/skogsgren/pefselab/workflows/Run%20tests/badge.svg)
+
 P[yPi]ackaged Efficient Sequence Labeling
 
 A packaged version of [`efselab`](https://github.com/robertostling/efselab),
