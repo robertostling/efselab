@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,6 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest
         pip install -e .[test]
+        python3 -c "from pefselab.train_swe_pipeline import create_pipeline; create_pipeline()"
     - name: Test with pytest
       run: |
         python3 -m pytest -v
