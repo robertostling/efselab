@@ -1,252 +1,186 @@
-# efselab
-Efficient Sequence Labeling
+# pefselab
 
-`efselab` is a compiler for sequence labeling tools,
-aimed at producing accurate and very fast part-of-speech (PoS) taggers and
-named entity recognizers (NER).
+P[yPi]ackaged Efficient Sequence Labeling
 
-To create a PoS tagger, all you need to do is to edit a Python file which
-specifies which feature templates, tag lexicons and/or word clusters to use.
-`efselab` then compiles this specification into C code, which is then compiled
-into an executable.
+A packaged version of [`efselab`](https://github.com/robertostling/efselab),
+intentionally scaled down in terms of available options in order to be more
+easily downloaded and accessed without manual intervention and compilation.
 
-The basic algorithm used is simple: a structured perceptron using greedy
-search for decoding. To maximize performance, all strings are represented as
-hash sums internally. During decoding, these can then be efficiently combined
-into feature hashes.
+## Requirements
 
-In this way, even rather complex feature templates using word clusters and
-external lexicons can generate taggers capable of around a million tokens per
-second.
+A C-compiler:
 
-## Description
+- **Windows**: Install WSL[^1] (instructions [here](https://learn.microsoft.com/en-us/windows/wsl/install))
+- **Mac**: Install XCode  (instructions [here](https://developer.apple.com/support/xcode/))
+- **Linux**: `gcc` is already installed. You're good.
 
-A detailed description of the algorithms used along with evaluations can be
-found in the following paper:
+[^1]: This is seriously the most widely recommended way from what I could gather.
+      Kind of ironic if you ask me.
 
- * Robert Östling (2018). [Part of Speech Tagging: Shallow or Deep Learning?](http://dx.doi.org/10.3384/nejlt.2000-1533.1851). North European Journal of Language Technology (5), 1--15.
+## Installation
 
-## Installing and using efselab
+`pip3 install pefselab`
 
-`efselab` is implemented in Python/C and requires the following software to be
-installed:
+## Usage
 
- * Python 3 (tested with version 3.4) and setuptools
- * gcc (tested with version 4.9) and GNU Make
- * Cython (only needed if you want to use the Swedish lemmatizer)
+Running `python3 -m pefselab` prints information relevant to `pefselab`,
+including the data directory where models are stored as well as the available
+models for use. This can also be accessed programmatically (along with the
+variables used to print it; for example if one is writing code to test all the
+models currently trained) using the following code:
 
-There is no installation as such, all the software is (somewhat inelegantly)
-contained in the root directory, where configuration files are also assumed to
-be placed and executed.
+```python
+from pefselab.wrappers import Info
 
-First, you need to build the Python module `fasthash`, which is used to
-construct lexicon hash tables. Simply type:
+pefselab_info: Info = Info()
+```
 
-    make
+If more customized models are required than the ways detailed below then I
+refer to the original `efselab` to create them. If those models are then copied
+to the model directory (see `python3 -m pefselab` for where it's located) then
+they should become available in `pefselab` as well.
 
-Each tagger specification file (`build_*.py`) also functions as a build
-script. For a complete list of arguments, run e.g.:
+### Universal Dependency (UD) Part-of-Speech (POS) Tagger
 
-    python3 build_udt_en.py --help
+To create a UD POS tagger the following code deals with both downloading UD
+Treebanks, preprocessing, building and training. Let's pick
+[`UD_French_GSD`](https://universaldependencies.org/treebanks/fr_gsd/).
 
-Then, to build a tagger simply run the corresponding configuration file, the
-following will build a tagger for the English Universal Dependencies treebank
-with the name `udt_en`, both an executable file and a Python module:
+```python
+from pefselab.train_udt import udt_pipeline
 
-    python3 build_udt_en.py --name udt_en --python
+udt_pipeline("UD_French_GSD")
+```
 
-which will build a tagger for the English part of the Universal Dependencies
-Treebank. This produces a binary file, `udt_en`, which contains everything
-except the model weights. These need to be learned in the following way:
+This trains the model and puts it in the model directory. Then we can access it
+through the `Model` wrapper. Note that the `Model` wrapper uses the UD
+langcode, which we can get programmatically using the `pefselab.Info` wrapper,
+or manually by running `python3 -m pefselab` and looking under available
+models.
 
-    ./udt_en train data/udt-en-train.tab data/udt-en-dev.tab udt-en.bin
+```python
+from pefselab.wrappers import Model
 
-The final weights are written to the file `udt-en.bin`, and can the be used
-for tagging:
+french_pos_tagger: Model = Model("udfr_gsd")
+french_pos_tagger.tag("""
+Au milieu de la rue Saint-Denis, presque au coin de la
+rue du Petit-Lion, existait naguère une de ces maisons précieuses qui donnent
+aux historiens la facilité de reconstruire par analogie l'ancien Paris.
+""")
+```
 
-    ./udt_en tag data/udt-en-test.tab udt-en.bin evaluate >/dev/null
+Which produces the following output:
 
-Note that the `evaluate` option requires a tagged input, if you want to tag an
-untagged file, this can also be done (in this example by stripping off the
-tags using the `cut` tool, and using `-` as the input file to read from stdin):
+```
+('_', 'NOUN|Gender=Masc|Number=Sing', 'ADP',
+'DET|Definite=Def|Gender=Fem|Number=Sing|PronType=Art',
+'NOUN|Gender=Fem|Number=Sing', 'PROPN', 'ADV', '_',
+'NOUN|Gender=Masc|Number=Sing', 'ADP',
+'DET|Definite=Def|Gender=Fem|Number=Sing|PronType=Art',
+'NOUN|Gender=Fem|Number=Sing',
+'DET|Definite=Ind|Gender=Masc|Number=Sing|PronType=Art',
+'NOUN|Gender=Masc|Number=Sing',
+'VERB|Mood=Ind|Number=Sing|Person=3|Tense=Imp|VerbForm=Fin', 'ADV',
+'PRON|Gender=Fem|Number=Sing|Person=3|PronType=Ind', 'ADP',
+'DET|Number=Plur|PronType=Dem', 'NOUN|Gender=Fem|Number=Plur',
+'ADJ|Gender=Fem|Number=Plur', 'PRON|PronType=Rel',
+'VERB|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin', '_',
+'NOUN|Gender=Masc|Number=Plur',
+'DET|Definite=Def|Gender=Fem|Number=Sing|PronType=Art',
+'NOUN|Gender=Fem|Number=Sing', 'ADP', 'VERB|VerbForm=Inf', 'ADP',
+'NOUN|Gender=Fem|Number=Sing', 'ADJ|Gender=Fem|Number=Sing', 'PROPN')
+```
 
-    cut -f 1 data/udt-en-test.tab | ./udt_en tag - udt-en.bin >udt-en-retag.tab
+### Swedish Pipeline
 
-## Swedish annotation pipeline
+To run the Swedish pipeline on two text-files, `file1.txt` and `file2.txt`, one
+can use the following code:
 
-There is a Swedish annotation pipeline, adapted from the Swedish Treebank
-pipeline (originally using hunpos for POS tagging) created at
-Uppsala University by Filip Salomonsson. It can do the following:
+```python
+from pefselab.train_swe_pipeline import create_pipeline
+from pefselab.swe_pipeline import SwedishPipeline, pipeline_available
 
- * Tokenization (using a Python tokenizer by Filip Salomonsson)
- * POS tagging (using `efselab` with a SUC + SIC model)
- * Conversion to Universal PoS tags (using `efselab` trained on Universal
-   Dependencies data plus some postprocessing heuristics by Aaron Smith)
- * Lemmatization (using the lexicon-based lemmatizer in `lemmatize.pyx`)
- * Named Entity Recognition (using `efselab` with a SUC + SIC model)
- * Dependency prasing (using MaltParser by Joakim Nivre et al.) into
-   Universal Dependencies format (version 2)
+if not pipeline_available():
+    create_pipeline()
 
-To start using the pipeline, you first need to execute the following
-convenience script:
+nlp: SwedishPipeline = SwedishPipeline(
+    ["file1.txt", "file2.txt"]
+)
+```
 
-    scripts/install_swedish_pipeline.sh
+This automatically downloads the Swedish pipeline to the datadirectory, builds
+it and trains it. The tagged data is then available in the SwedishPipeline
+object in the `documents` class variable, which is a dataclass with the
+following variables:
 
-Then you should be able to run the pipeline like this:
+```
+path:       path to file
+tokens:     list of tokens
+ud_tags:    list of universal dependency tags (index matches with tokens above)
+suc_tags:   list of SUC tags (index matches with tokens above)
+ner_tags:   list of NER tags (index matches with tokens above)
+```
 
-    mkdir output
-    ./swe_pipeline.py -o output --all file.txt
+The different components of the pipeline can be switched on and off depending
+on ones needs. By default it uses the following flags. Disable/enable at your
+own whim.
 
-For a more detailed description of the command-line options, run:
+```python
+nlp: SwedishPipeline = SwedishPipeline(
+    ["file1.txt", "file2.txt"],
+    tagger=True,
+    ner_tagger=True,
+    ud_tagger=True,
+    lemmatizer=True,
+    skip_tokenization=False,
+    skip_segmentation=False,
+    non_capitalization=False,
+)
+```
 
-    ./swe_pipeline.py --help
+One can also save all document results to json files using
+`SwedishPipelineObject.save()` with an optional parameter for where to save
+them. For the example above we could write the following code to save it to a
+folder called "results":
 
-## Accuracy
+```python
+nlp.save("results")
+```
 
-These evaluations are performed with the 17-element PoS tagset from Universal
-Dependencies version 2. The Swedish model in the leftmost column of the first
-table uses additional data, all other models use only the training part of the
-corresponding Universal Dependencies treebank.
+This would create two files inside `./results`: `file1.json` and `file2.json`.
 
-### Swedish
+### Parsing
 
-| Test data                   | Swedish | Generic |
-|:--------------------------- | ----:| ----:|
-| Swedish UD treebank         | 97.7 | 96.3 |
-| Swedish (LinES) UD treebank | 91.9 | 95.0 |
+Adding parsing would require some hefty dependencies (most notably `pytorch`)
+so I opted to remove the parsing capability in `efselab`; however, if it is
+needed one can easily convert the handled documents in `SwedishPipeline`
+objects through the `as_stanza_parse_struct` method. For example, if I wanted
+to parse `file1.txt` above, then I would use this code (after installing
+`stanza` using `pip3 install stanza`):
 
+```python
+import stanza
+from stanza.models.common.doc import Document
+from pefselab.swe_pipeline import SwedishPipeline
 
-### Universal Dependencies treebanks (version 2.0)
+nlp: SwedishPipeline = SwedishPipeline(
+    ["file1.txt", "file2.txt"]
+)
 
-| Treebank | Accuracy |
-|:-------- | --------:|
-| Anc.\ Greek | 87.7 |
-| Anc.\ Greek (PROIEL) | 96.5 |
-| Arabic | 94.8 |
-| Basque | 94.2 |
-| Belarusian | 90.2 |
-| Bulgarian | 98.0 |
-| Catalan | 97.6 |
-| Chinese | 91.0 |
-| Coptic | 95.1 |
-| Croatian | 96.4 |
-| Czech | 98.6 |
-| Czech (CAC) | 98.8 |
-| Czech (CLTT) | 97.5 |
-| Danish | 96.3 |
-| Dutch | 92.3 |
-| Dutch (LassySmall) | 97.6 |
-| English | 94.8 |
-| English (LinES) | 95.3 |
-| English (ParTUT) | 94.7 |
-| Estonian | 90.3 |
-| Finnish | 95.8 |
-| Finnish (FTB) | 93.2 |
-| French | 96.6 |
-| French (ParTUT) | 94.1 |
-| French (Sequoia) | 97.4 |
-| Galician | 97.4 |
-| Galician (TreeGal) | 90.4 |
-| German | 92.8 |
-| Gothic | 95.7 |
-| Greek | 96.8 |
-| Hebrew | 95.5 |
-| Hindi | 96.5 |
-| Hungarian | 93.4 |
-| Indonesian | 92.9 |
-| Irish | 84.9 |
-| Italian | 97.7 |
-| Japanese | 96.2 |
-| Korean | 94.0 |
-| Latin | 84.4 |
-| Latin (ITTB) | 97.3 |
-| Latin (PROIEL) | 95.8 |
-| Latvian | 91.1 |
-| Lithuanian | 79.1 |
-| Norwegian (Bokmaal) | 97.1 |
-| Norwegian (Nynorsk) | 96.7 |
-| Old Church Slavonic | 95.3 |
-| Persian | 96.6 |
-| Polish | 97.0 |
-| Portuguese | 96.6 |
-| Portuguese (BR) | 96.9 |
-| Romanian | 97.2 |
-| Russian | 95.9 |
-| Sanskrit | 61.0 |
-| Slovak | 95.2 |
-| Slovenian | 96.8 |
-| Slovenian (SST) | 89.0 |
-| Spanish | 95.9 |
-| Spanish (AnCora) | 97.9 |
-| Swedish | 96.3 |
-| Swedish (LinES) | 95.0 |
-| Tamil | 86.6 |
-| Turkish | 94.3 |
-| Ukrainian | 61.9 |
-| Urdu | 93.3 |
-| Vietnamese | 88.3 |
+stanza_pipeline: stanza.Pipeline = stanza.Pipeline(
+    lang='sv',
+    processors='depparse',
+    depparse_pretagged=True
+)
 
-## Performance-related options
+pretagged_doc: Document = Document([nlp.as_stanza_parse_struct("file1.txt")])
+parsed_doc: Document = nlp(pretagged_doc)
+```
 
-The `--beam-size` argument of the build scripts controls the beam size of the
-decoder, which is the
-most important way to balance accuracy and performance. A beam size of 1 is
-equivalent to a greedy search, which is the fastest option but results in
-significantly higher error rates than the default beam size (4).
+## Future work
 
-## Python interface
+The code for the Swedish pipeline could easily be rewritten in a way so that
+it's universally applicable rather than specific to Swedish, but I didn't have
+the time.
 
-To build a Python module for your tagger, use the `--python` argument with the
-configuration script:
-
-    python3 build_udt_en.py --name udt_en --python
-
-After this, the tagger can be used from Python in the following way:
-
-    >>> import udt_en
-    >>> with open('udt-en.bin', 'rb') as f: weights = f.read()
-    ...
-    >>> udt_en.tag(weights, ['A', 'short', 'sentence', '.'])
-    ('DET', 'ADJ', 'NOUN', 'PUNCT')
-
-The second argument can be a tuple or list of either `str` objects, or a
-tuple or list containing the values of the different input fields. Using a
-tuple with a single `str` object is equivalent to using just the `str` object.
-
-`weights` is a `bytes` object, containing the contents of a model
-file, i.e. a binary vector of floating-point values.
-
-## Distributing taggers
-
-Users with access to (possibly restricted) training material will likely want
-to distribute the generated C file and the model file. The end user can then
-compile the C file for their own platform, and start tagging files.
-
-## Issues
-
-There are some things to be aware of:
-
- * Tokens are simply truncated at 4095 bytes, don't feed it very long strings!
- * Currently only UTF-8 input is supported.
-
-## Third-party code and data
-
-This repository includes a few third-party contributions:
-
- * The English part of the UD Treebank (licensed as CC BY-SA 4.0), see:
-   https://universaldependencies.github.io/docs/
- * UTF-8 decoding code from Björn Höhrmann (under the MIT license):
-   http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
- * Brown clusters from Turian et al.:
-   http://metaoptimize.com/projects/wordreprs/
-
-## Credits
-
-Thanks to [Emil Stenström](https://github.com/EmilStenstrom) for testing and
-feedback.
-
-The Swedish pipeline wrapper script (including the tokenizer) was originally
-written by Filip Salomonsson (Uppsala), later modified by Robert Östling
-(Stockholm/Helsinki) and Aaron Smith (Uppsala). Joakim Nivre and Jesper Näsman
-(Uppsala) contributed to different parts of the Swedish pipeline.
-
+Pull requests are welcome!
