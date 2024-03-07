@@ -13,7 +13,7 @@ from pathlib import Path
 SWEDATA_URL: str = "https://dali.ling.su.se/projects/efselab/swe-pipeline-ud2.tar.gz"
 
 
-def build():
+def build_pipeline():
     build_suc.build(skip_generate=True, n_train_fields=2)
     build_suc_ne.build(skip_generate=True)
     build_udt_suc_sv.build(n_train_fields=4, skip_generate=False, beam_size=1)
@@ -21,7 +21,7 @@ def build():
         shutil.rmtree("build")
 
 
-def train():
+def train_pipeline():
     subprocess.run(
         [
             get_data_dir().joinpath("models", "udt_suc_sv"),
@@ -31,9 +31,12 @@ def train():
             get_data_dir().joinpath("models", "suc-ud.bin"),
         ]
     )
+    # create empty file to make it easier to check if pipeline is available
+    open(get_data_dir().joinpath("models", "pipeline_built"), "w").close()
 
 
-def preprocessing():
+
+def preprocessing_for_pipeline():
     modeldir: Path = get_data_dir().joinpath("models")
     if not modeldir.exists():
         modeldir.mkdir()
@@ -59,3 +62,8 @@ def preprocessing():
         if modeldir.joinpath(i.name).exists():
             continue
         shutil.move(i, modeldir)
+
+def create_pipeline():
+    preprocessing_for_pipeline()
+    build_pipeline()
+    train_pipeline()
