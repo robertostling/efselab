@@ -72,11 +72,9 @@ class SwedishPipeline:
         ud_tagger: bool = True,
         ner_tagger: bool = True,
         lemmatizer: bool = True,
-        output_dir: Path | str = Path("./output"),
         non_capitalization: bool = False,
         skip_tokenization: bool = False,
         skip_segmentation: bool = False,
-        delete_tmp_dir: bool = True,
     ):
         self.documents: dict[str, Document] = {}
 
