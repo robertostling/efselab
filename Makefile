@@ -1,9 +1,0 @@
-fasthash.so:
-	python3 setup.py build_ext --inplace
-
-clean:
-	python3 setup.py clean
-	rm -f *.so
-
-run_tests:
-	python3 -m unittest discover
