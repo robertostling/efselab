@@ -11,14 +11,14 @@ if not pipeline_is_available():
 def test_pipeline_process_file():
     """test the process_file without any modifications"""
     nlp: SwedishPipeline = SwedishPipeline(
-        ["sample_tokenized.txt"],
+        ["pefselab/tests/sample_tokenized.txt"],
         tagger=False,
         ner_tagger=False,
         lemmatizer=False,
         skip_tokenization=True,
     )
 
-    with open("sample_tokenized.txt", "r") as f:
+    with open("pefselab/tests/sample_tokenized.txt", "r") as f:
         lines: list[str] = [x.rstrip() for x in f]
         tokens: list[str] = []
         for line in lines:
@@ -30,7 +30,7 @@ def test_pipeline_process_file():
 def test_pipeline_tokenization():
     """test tokenization without tagging"""
     nlp: SwedishPipeline = SwedishPipeline(
-        ["sample.txt"],
+        ["pefselab/tests/sample.txt"],
         tagger=False,
         ud_tagger=False,
         ner_tagger=False,
@@ -38,7 +38,7 @@ def test_pipeline_tokenization():
         skip_tokenization=False,
     )
 
-    with open("sample_tokenized.txt", "r") as tokenized_file:
+    with open("pefselab/tests/sample_tokenized.txt", "r") as tokenized_file:
         tokens: list[str] = [
             token.rstrip() for token in tokenized_file if token != "\n"
         ]
@@ -48,31 +48,31 @@ def test_pipeline_tokenization():
 
 def test_pipeline_suc_tagging():
     nlp: SwedishPipeline = SwedishPipeline(
-        ["sample.txt"],
+        ["pefselab/tests/sample.txt"],
         tagger=True,
         ud_tagger=False,
         ner_tagger=False,
         lemmatizer=False,
     )
-    with open("sample.json", "r") as f:
+    with open("pefselab/tests/sample.json", "r") as f:
         suc_tags: list[str] = json.load(f)["suc_tags"]
     assert nlp.documents["sample.txt"].suc_tags == suc_tags
 
 
 def test_pipeline_ud_tagging():
-    nlp: SwedishPipeline = SwedishPipeline(["sample.txt"])
-    with open("sample.json", "r") as f:
+    nlp: SwedishPipeline = SwedishPipeline(["pefselab/tests/sample.txt"])
+    with open("pefselab/tests/sample.json", "r") as f:
         ud_tags: list[str] = json.load(f)["ud_tags"]
     assert nlp.documents["sample.txt"].ud_tags == ud_tags
 
 
 def test_pipeline_save():
     with tempfile.TemporaryDirectory() as output_dir:
-        SwedishPipeline(["sample.txt"]).save(output_dir)
+        SwedishPipeline(["pefselab/tests/sample.txt"]).save(output_dir)
         with open(Path(output_dir).joinpath("sample.json"), "r") as f:
             lr: dict = json.load(f)
             del lr["path"]  # since the pathname k/v is not in the comparison file
-        with open("sample.json", "r") as f:
+        with open("pefselab/tests/sample.json", "r") as f:
             rr: dict = json.load(f)
         assert lr == rr
 
