@@ -76,5 +76,6 @@ def test_pipeline_save():
             rr: dict = json.load(f)
         assert lr == rr
 
+
 def test_pipeline_parse_struct():
     pass

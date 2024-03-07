@@ -68,7 +68,11 @@ class Configuration:
                 ["cc"]  # TODO: implement config file with custom C compiler
                 + self.cflags
                 + ["-I", str(get_data_dir().joinpath("models"))]
-                + ["-o", str(get_data_dir().joinpath("models", self.name)), str(get_data_dir().joinpath("models", self.name + ".c"))]
+                + [
+                    "-o",
+                    str(get_data_dir().joinpath("models", self.name)),
+                    str(get_data_dir().joinpath("models", self.name + ".c")),
+                ]
             )
 
         # generate and compile Python interface

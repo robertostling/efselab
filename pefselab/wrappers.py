@@ -9,6 +9,7 @@ from importlib import import_module
 from types import ModuleType
 from .tools import get_data_dir
 
+
 class Model:
     """Wrapper around an already trained model to allow easy integration into
     other python programs"""
@@ -23,13 +24,13 @@ class Model:
                 break
         if not found:
             raise FileNotFoundError(f"{modelspec} not found")
-        sys.path.append(str(self.modeldir.absolute())) # hacky, but it works
+        sys.path.append(str(self.modeldir.absolute()))  # hacky, but it works
         self.model: ModuleType = import_module(str(self.name))
         with open(self.modeldir.joinpath(self.name).with_suffix(".bin"), "rb") as f:
             self.weights = f.read()
 
     def tag(self, sentence: str) -> list[str]:
-        """ just makes it easier to access tag method """
+        """just makes it easier to access tag method"""
         return self.model.tag(self.weights, sentence.split())
 
 
@@ -53,7 +54,9 @@ class Info:
         self.modeldir: Path = self.datadir.joinpath("models")
         if not self.modeldir.exists():
             self.modeldir.mkdir()
-        self.models: list[Path] = [x for x in self.modeldir.iterdir() if x.suffix == ".so"]
+        self.models: list[Path] = [
+            x for x in self.modeldir.iterdir() if x.suffix == ".so"
+        ]
 
         self.udtdir: Path = self.datadir.joinpath("udt")
         self.udt_available: bool = True if self.udtdir.exists() else False

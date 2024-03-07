@@ -75,12 +75,12 @@ class TrainerUdt:
         trainpath: Path = datapath.joinpath(f"{self.lang}-ud-train.tab")
         testpath: Path = datapath.joinpath(f"{self.lang}-ud-test.tab")
         devpath: Path = datapath.joinpath(f"{self.lang}-ud-dev.tab")
-        assert trainpath.exists() # I'm not crazy...
-        assert testpath.exists() or devpath.exists() # must have one or the other
+        assert trainpath.exists()  # I'm not crazy...
+        assert testpath.exists() or devpath.exists()  # must have one or the other
         self.data: dict[str, Path] = {
             "test": testpath if testpath.exists() else devpath,
             "dev": devpath if devpath.exists() else testpath,
-            "train": trainpath
+            "train": trainpath,
         }
         self.udt_tags, self.udt_norm_tags = read_dict(self.data["train"], 0, 1)
         UDT = Tagset(self.udt_tags, self.config)
@@ -151,13 +151,15 @@ class TrainerUdt:
     def fit(self):
         """train model"""
         self.config.build()
-        subprocess.run([
-            f"{get_data_dir().joinpath('models', 'ud' + self.lang)}",
-            "train",
-            self.data["train"],
-            self.data["dev"],
-            f"{get_data_dir().joinpath('models', 'ud' + str(Path(self.lang).with_suffix('.bin')))}"
-        ])
+        subprocess.run(
+            [
+                f"{get_data_dir().joinpath('models', 'ud' + self.lang)}",
+                "train",
+                self.data["train"],
+                self.data["dev"],
+                f"{get_data_dir().joinpath('models', 'ud' + str(Path(self.lang).with_suffix('.bin')))}",
+            ]
+        )
 
 
 def udt_pipeline(lang: str) -> None:
@@ -177,8 +179,5 @@ def udt_pipeline(lang: str) -> None:
     langpath: Path = udt_path.joinpath(lang)
     assert langpath.exists()
     langid: str = Info().udt_langs[lang]
-    trainer: TrainerUdt = TrainerUdt(
-        lang=langid,
-        datapath=langpath
-    )
+    trainer: TrainerUdt = TrainerUdt(lang=langid, datapath=langpath)
     trainer.fit()

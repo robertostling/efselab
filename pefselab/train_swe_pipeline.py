@@ -35,7 +35,6 @@ def train_pipeline():
     open(get_data_dir().joinpath("models", "pipeline_built"), "w").close()
 
 
-
 def preprocessing_for_pipeline():
     modeldir: Path = get_data_dir().joinpath("models")
     if not modeldir.exists():
@@ -62,6 +61,7 @@ def preprocessing_for_pipeline():
         if modeldir.joinpath(i.name).exists():
             continue
         shutil.move(i, modeldir)
+
 
 def create_pipeline():
     preprocessing_for_pipeline()

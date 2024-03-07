@@ -14,22 +14,22 @@ udt_suc_sv: ModuleType = import_module("udt_suc_sv")
 suc: ModuleType = import_module("suc")
 suc_ne: ModuleType = import_module("suc_ne")
 
-# Tags a sentence with SUC tags based on a trained model
-class SucTagger():
 
+# Tags a sentence with SUC tags based on a trained model
+class SucTagger:
     def __init__(self, tagging_model):
-        with open(tagging_model, 'rb') as f:
+        with open(tagging_model, "rb") as f:
             self.tagger_weights = f.read()
 
     def tag(self, sentence):
         tags_list = suc.tag(self.tagger_weights, sentence)
         return tags_list
 
-# Tags a sentence with SUC-style named entity tags based on a trained model
-class SucNETagger():
 
+# Tags a sentence with SUC-style named entity tags based on a trained model
+class SucNETagger:
     def __init__(self, tagging_model):
-        with open(tagging_model, 'rb') as f:
+        with open(tagging_model, "rb") as f:
             self.tagger_weights = f.read()
 
     def tag(self, sentence):
@@ -38,7 +38,7 @@ class SucNETagger():
 
 
 # Tags a sentence with UD tags based on a model trained on SUC tags
-class UDTagger():
+class UDTagger:
     FEATURE_MAPPING = {
         "AKT": ["Voice=Act"],
         "DEF": ["Definite=Def"],
@@ -70,34 +70,34 @@ class UDTagger():
 
     # Words that should have the feature Polarity=Neg
     NEGATIVE = {
-        ('inte', 'AB'),
-        ('icke', 'AB'),
-        ('aldrig', 'AB'),
-        ('knappast', 'AB'),
-        ('näppeligen', 'AB'),
-        ('varken', 'AB'),
-        ('föga', 'AB'),
-        ('igalunda', 'AB'),
-        ('ej', 'AB'),
-        #('nej', 'IN'),
-        #('nehej', 'IN'),
-        #('nejdå', 'IN'),
-        #('nix', 'IN'),
+        ("inte", "AB"),
+        ("icke", "AB"),
+        ("aldrig", "AB"),
+        ("knappast", "AB"),
+        ("näppeligen", "AB"),
+        ("varken", "AB"),
+        ("föga", "AB"),
+        ("igalunda", "AB"),
+        ("ej", "AB"),
+        # ('nej', 'IN'),
+        # ('nehej', 'IN'),
+        # ('nejdå', 'IN'),
+        # ('nix', 'IN'),
     }
 
     # Words that should have the feature Polarity=Pos
     # NOTE: this is currently not used in the Swedish version
-    #POSITIVE = {
+    # POSITIVE = {
     #    ('ja', 'IN'),
     #    ('jaa', 'IN'),
     #    ('jadå', 'IN'),
     #    ('jajamen', 'IN'),
     #    ('jajamän', 'IN'),
     #    ('jajamensan', 'IN'),
-    #}
+    # }
 
     def __init__(self, tagging_model):
-        with open(tagging_model, 'rb') as f:
+        with open(tagging_model, "rb") as f:
             self.tagger_weights = f.read()
 
     def _is_nonstring_iterable(self, value):
@@ -109,8 +109,10 @@ class UDTagger():
         self._is_nonstring_iterable(lemmas)
         self._is_nonstring_iterable(suc_tags_list)
 
-        suc_sentence = [(lemma, tag.split('|',1)[0], tag)
-                        for lemma, tag in zip(lemmas, suc_tags_list)]
+        suc_sentence = [
+            (lemma, tag.split("|", 1)[0], tag)
+            for lemma, tag in zip(lemmas, suc_tags_list)
+        ]
         tag_list = udt_suc_sv.tag(self.tagger_weights, suc_sentence)
         tag_list = self.ud_verb_heuristics(tag_list, sentence, lemmas)
         features = self.ud_features(suc_tags_list, lemmas)
@@ -121,19 +123,22 @@ class UDTagger():
         ud_tags = list(ud_tags)
         n = len(ud_tags)
         for i in range(n):
-            if ud_tags[i] == 'AUX':
-                if lemmas[i] == 'vara':
+            if ud_tags[i] == "AUX":
+                if lemmas[i] == "vara":
                     # Trust the copula classifier
                     continue
                 for j in range(i + 1, n):
-                    if ud_tags[j] in ('AUX', 'VERB'):
+                    if ud_tags[j] in ("AUX", "VERB"):
                         # If followed by AUX or VERB, do nothing
                         break
-                    if (ud_tags[j] in ('SCONJ', 'PUNCT')) \
-                            or tokens[j].lower() == 'som' or j == n - 1:
+                    if (
+                        (ud_tags[j] in ("SCONJ", "PUNCT"))
+                        or tokens[j].lower() == "som"
+                        or j == n - 1
+                    ):
                         # If no AUX/VERB before SCONJ, PUNCT, "som" or end of
                         # sentence, change to VERB
-                        ud_tags[i] = 'VERB'
+                        ud_tags[i] = "VERB"
                         break
         return ud_tags
 
@@ -142,7 +147,7 @@ class UDTagger():
 
         for suc_tags, lemma in zip(suc_tags_list, lemmas):
             # Apparently incorrect code from the UD 1 version:
-            #if "|" not in suc_tags:
+            # if "|" not in suc_tags:
             #    ud_features.append("_")
             #    continue
 
@@ -160,7 +165,11 @@ class UDTagger():
                 if "/" not in suc_feature:
                     ud_feature_list += self.FEATURE_MAPPING[suc_feature]
 
-            if "VerbForm=Fin" in ud_feature_list and "Mood=Imp" not in ud_feature_list and "Mood=Sub" not in ud_feature_list:
+            if (
+                "VerbForm=Fin" in ud_feature_list
+                and "Mood=Imp" not in ud_feature_list
+                and "Mood=Sub" not in ud_feature_list
+            ):
                 ud_feature_list += ["Mood=Ind"]
 
             if suc_tag in ["HA", "HD", "HP", "HS"]:
@@ -175,7 +184,7 @@ class UDTagger():
             if (lemma, suc_tag) in self.NEGATIVE:
                 ud_feature_list += ["Polarity=Neg"]
             # Currently not used in the Swedish UD treebank:
-            #elif (lemma, suc_tag) in self.POSITIVE:
+            # elif (lemma, suc_tag) in self.POSITIVE:
             #    ud_feature_list += ["Polarity=Pos"]
 
             ud_features.append("|".join(sorted(ud_feature_list)) or "_")

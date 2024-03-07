@@ -13,11 +13,17 @@ from pathlib import Path
 from pprint import pprint
 
 
-def build(n_train_fields: int = 4, generate_python: bool = True, skip_generate: bool = False, beam_size: int = 1, n_tag_fields: int = 3):
+def build(
+    n_train_fields: int = 4,
+    generate_python: bool = True,
+    skip_generate: bool = False,
+    beam_size: int = 1,
+    n_tag_fields: int = 3,
+):
     # There are plenty of other configuration options (see configuration.py), the
     # only mandatory one is the name of the model, which will be used for the C
     # file generated.
-    config = Configuration('udt_suc_sv')
+    config = Configuration("udt_suc_sv")
     config.n_train_fields = n_train_fields
     config.n_tag_fields = n_tag_fields
     config.generate_python = generate_python
@@ -26,41 +32,42 @@ def build(n_train_fields: int = 4, generate_python: bool = True, skip_generate: 
 
     # Read tagset and tag lexicon (coarse SUC -> UD) from corpus
     udt_sv_tags, udt_sv_suc_tags = read_dict(
-        Path(__file__).parent.joinpath("data", 'sv-ud-train.tab'),
+        Path(__file__).parent.joinpath("data", "sv-ud-train.tab"),
         token_field=1,
-        tag_field=3
+        tag_field=3,
     )
-    udt_sv_tags.add('X')
+    udt_sv_tags.add("X")
 
     # Create a Tagset object from the tags we have read
     UDT_SV = Tagset(udt_sv_tags, config)
 
-    lemma_field     = 0
-    suc_field       = 1
-    suc_full_field  = 2
-    tag_field       = 3
+    lemma_field = 0
+    suc_field = 1
+    suc_full_field = 2
+    tag_field = 3
 
     # UD tag (this is not really a sequence model, so we don't depend on history)
-    this_tag        = UDT_SV.tag(tag_field, 0)
+    this_tag = UDT_SV.tag(tag_field, 0)
 
     # Word form features (lemmas)
-    this_word       = TextField(lemma_field, 0)
+    this_word = TextField(lemma_field, 0)
 
     # Coarse SUC tags (given as input)
     #
     # The reason we apply normalization (= lower-casing) to these tags is because
     # they're also used in the tag dictionary, which requires normalized inputs.
-    this_suc        = normalize(TextField(suc_field, 0))
-    last_suc        = normalize(TextField(suc_field, -1))
-    next_suc        = normalize(TextField(suc_field, 1))
-    last_last_suc   = normalize(TextField(suc_field, -2))
-    next_next_suc   = normalize(TextField(suc_field, 2))
+    this_suc = normalize(TextField(suc_field, 0))
+    last_suc = normalize(TextField(suc_field, -1))
+    next_suc = normalize(TextField(suc_field, 1))
+    last_last_suc = normalize(TextField(suc_field, -2))
+    next_next_suc = normalize(TextField(suc_field, 2))
 
     # Full SUC tags
-    this_suc_full   = TextField(suc_full_field, 0)
+    this_suc_full = TextField(suc_full_field, 0)
 
     # Each tuple below represents a single feature template.
-    fs = FeatureSet([
+    fs = FeatureSet(
+        [
             # SUC full tag features
             (this_tag, this_suc_full),
             (this_tag, this_suc_full, last_suc),
@@ -74,17 +81,17 @@ def build(n_train_fields: int = 4, generate_python: bool = True, skip_generate: 
             (this_tag, this_suc, last_suc, next_suc),
             # Word form features
             (this_tag, this_word),
-            #(this_tag, this_suc, this_word),
-        ], config)
+            # (this_tag, this_suc, this_word),
+        ],
+        config,
+    )
 
     # For tags not seen in the training material, assume UD tag X.
-    open_tags = sorted(
-            UDT_SV.tag_idx[tag]
-            for tag in ['X'])
+    open_tags = sorted(UDT_SV.tag_idx[tag] for tag in ["X"])
 
     # Create a TagLexicon object from the tag lexicon we loaded with read_dict()
     # above.
-    tl = TagLexicon('UDT_SV_lexicon', suc_field, 0x1000, open_tags, config)
+    tl = TagLexicon("UDT_SV_lexicon", suc_field, 0x1000, open_tags, config)
     for suc, tags in udt_sv_suc_tags.items():
         tl[suc] = [UDT_SV.tag_idx[tag] for tag in tags]
 
