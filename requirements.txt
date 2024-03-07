@@ -3,3 +3,4 @@ Cython
 requests
 dataclasses
 pytest
+build
