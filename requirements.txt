@@ -1,0 +1,5 @@
+setuptools
+Cython
+requests
+dataclasses
+pytest
