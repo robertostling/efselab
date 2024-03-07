@@ -12,6 +12,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "cython>=0.25,<3.0",
+    "requests",
+    "dataclasses",
+]
 
 [project.urls]
 Homepage = "https://github.com/skogsgren/pefselab"
