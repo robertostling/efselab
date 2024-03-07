@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 
 fasthash = Extension(
     name="pefselab.fasthash",
-    sources=["pefselab/fasthash.c"],
+    sources=["pefselab/fasthash.c", "pefselab/c/hash.c"],
     extra_compile_args=["-Wall"],
 )
 
@@ -18,5 +18,6 @@ setup(
     packages=find_packages(),
     ext_modules=cythonize([lemmatize, fasthash]),
     include_package_data=True,
+    include_dirs=["pefselab/c"],
     package_data={"": ["build*.py, *.pyx, *.c, *.perl"]},
 )
