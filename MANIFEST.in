@@ -1,1 +1,1 @@
-recursive-include pefselab *.py *.pyx *.perl
+recursive-include pefselab *.py *.pyx
