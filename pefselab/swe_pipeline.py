@@ -97,7 +97,7 @@ class SwedishPipeline:
 
         for filename in filenames:
             self.documents[Path(filename).name] = Document(filename)
-            self.__process_file(Path(filename))
+            self.process_file(Path(filename))
 
     def save(self, output_dir: Path | str = Path("./output")):
         """saves processed data to json given an output directory path"""
@@ -128,19 +128,20 @@ class SwedishPipeline:
         for i, token in enumerate(doc.tokens):
             ud_tags: list[str] = doc.ud_tags[i].split("|")
             upos: str = ud_tags[0]
+            xpos: str = doc.suc_tags[i].split("|")[0]
             feats: str = ("|").join(ud_tags[1:])
             parse_entries.append(
                 ParseEntry(
                     i + 1,  # since they're 1 indexed
                     text=token,
-                    xpos=upos,  # TODO: how to get xpos?
+                    xpos=xpos,  # TODO: how to get xpos?
                     upos=upos,
                     feats=feats,
                 )
             )
         return parse_entries
 
-    def __process_file(self, filename: Path) -> None:
+    def process_file(self, filename: Path) -> None:
         print("Processing %s..." % filename, file=sys.stderr)
         for sentence in self.__run_tokenization(filename):
             self.documents[filename.name].tokens += sentence
