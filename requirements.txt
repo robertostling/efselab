@@ -1,6 +1,0 @@
-setuptools
-Cython
-requests
-dataclasses
-pytest
-build

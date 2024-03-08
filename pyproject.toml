@@ -24,6 +24,7 @@ Issues = "https://github.com/skogsgren/pefselab/issues"
 
 [build-system]
 requires = [
+    "wheel",
     "setuptools",
     "cython>=0.25,<3.0",
 ]
