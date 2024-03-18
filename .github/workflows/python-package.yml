@@ -30,6 +30,7 @@ jobs:
         SDIST=$(python -c "import os;print(os.listdir('./dist')[-1])" 2>&1)
         python -m pip install dist/$SDIST
     - name: Building pipeline
+      run: |
         cd pefselab
         python3 -c "from pefselab.train_swe_pipeline import create_pipeline; create_pipeline()"
     - name: Test with pytest
