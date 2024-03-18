@@ -5,6 +5,8 @@ from .tools import get_data_dir
 
 import shutil
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import subprocess
 import tarfile
 import tempfile
@@ -36,10 +38,25 @@ def train_pipeline():
 
 
 def preprocessing_for_pipeline():
+    """ handles downloading pipeline data and moving it to the correct folder """
     modeldir: Path = get_data_dir().joinpath("models")
     if not modeldir.exists():
         modeldir.mkdir(parents=True)
-    response = requests.get(SWEDATA_URL, stream=True)
+
+    print("Downloading pipeline data")
+    s = requests.Session()
+    retries = Retry(
+        total=10,
+        backoff_factor=0.3,
+        status_forcelist=[502, 503, 504],
+        allowed_methods={'POST'},
+    )
+
+    adapter = HTTPAdapter(max_retries=retries)
+    s.mount("http://", adapter)
+    s.mount("https://", adapter)
+    response = s.get(SWEDATA_URL, stream=True, timeout=3)
+
     print(f"Accessing {SWEDATA_URL}...")
     if response.status_code != 200:
         raise requests.RequestException("Can't access URL. Check manually.")
