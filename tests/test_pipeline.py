@@ -18,7 +18,7 @@ def test_pipeline_process_file():
         skip_tokenization=True,
     )
 
-    with open("pefselab/tests/sample_tokenized.txt", "r") as f:
+    with open("tests/sample_tokenized.txt", "r") as f:
         lines: list[str] = [x.rstrip() for x in f]
         tokens: list[str] = []
         for line in lines:
@@ -38,7 +38,7 @@ def test_pipeline_tokenization():
         skip_tokenization=False,
     )
 
-    with open("pefselab/tests/sample_tokenized.txt", "r") as tokenized_file:
+    with open("tests/sample_tokenized.txt", "r") as tokenized_file:
         tokens: list[str] = [
             token.rstrip() for token in tokenized_file if token != "\n"
         ]
@@ -54,14 +54,14 @@ def test_pipeline_suc_tagging():
         ner_tagger=False,
         lemmatizer=False,
     )
-    with open("pefselab/tests/sample.json", "r") as f:
+    with open("tests/sample.json", "r") as f:
         suc_tags: list[str] = json.load(f)["suc_tags"]
     assert nlp.documents["sample.txt"].suc_tags == suc_tags
 
 
 def test_pipeline_ud_tagging():
     nlp: SwedishPipeline = SwedishPipeline(["pefselab/tests/sample.txt"])
-    with open("pefselab/tests/sample.json", "r") as f:
+    with open("tests/sample.json", "r") as f:
         ud_tags: list[str] = json.load(f)["ud_tags"]
     assert nlp.documents["sample.txt"].ud_tags == ud_tags
 
@@ -72,7 +72,7 @@ def test_pipeline_save():
         with open(Path(output_dir).joinpath("sample.json"), "r") as f:
             lr: dict = json.load(f)
             del lr["path"]  # since the pathname k/v is not in the comparison file
-        with open("pefselab/tests/sample.json", "r") as f:
+        with open("tests/sample.json", "r") as f:
             rr: dict = json.load(f)
         assert lr == rr
 
