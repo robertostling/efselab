@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 
 fasthash = Extension(
     name="pefselab.fasthash",
-    sources=["pefselab/fasthash.c", "pefselab/c/hash.c"],
+    sources=["pefselab/fasthash.c"],
     extra_compile_args=["-Wall"],
 )
 
