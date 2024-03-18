@@ -1,8 +1,8 @@
 [project]
-name = "pefselab_skogsgren"
+name = "pefselab"
 version = "0.0.1"
 authors = [
-  { name="Gustaf Gren", email="6107181+skogsgren@users.noreply.github.com" },
+  { name="skogsgren", email="6107181+skogsgren@users.noreply.github.com" },
 ]
 description = "Packaged efselab"
 readme = "README.md"
