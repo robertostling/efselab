@@ -11,7 +11,7 @@ if not pipeline_is_available():
 def test_pipeline_process_file():
     """test the process_file without any modifications"""
     nlp: SwedishPipeline = SwedishPipeline(
-        ["pefselab/tests/sample_tokenized.txt"],
+        ["tests/sample_tokenized.txt"],
         tagger=False,
         ner_tagger=False,
         lemmatizer=False,
@@ -30,7 +30,7 @@ def test_pipeline_process_file():
 def test_pipeline_tokenization():
     """test tokenization without tagging"""
     nlp: SwedishPipeline = SwedishPipeline(
-        ["pefselab/tests/sample.txt"],
+        ["tests/sample.txt"],
         tagger=False,
         ud_tagger=False,
         ner_tagger=False,
@@ -48,7 +48,7 @@ def test_pipeline_tokenization():
 
 def test_pipeline_suc_tagging():
     nlp: SwedishPipeline = SwedishPipeline(
-        ["pefselab/tests/sample.txt"],
+        ["tests/sample.txt"],
         tagger=True,
         ud_tagger=False,
         ner_tagger=False,
@@ -60,7 +60,7 @@ def test_pipeline_suc_tagging():
 
 
 def test_pipeline_ud_tagging():
-    nlp: SwedishPipeline = SwedishPipeline(["pefselab/tests/sample.txt"])
+    nlp: SwedishPipeline = SwedishPipeline(["tests/sample.txt"])
     with open("tests/sample.json", "r") as f:
         ud_tags: list[str] = json.load(f)["ud_tags"]
     assert nlp.documents["sample.txt"].ud_tags == ud_tags
@@ -68,7 +68,7 @@ def test_pipeline_ud_tagging():
 
 def test_pipeline_save():
     with tempfile.TemporaryDirectory() as output_dir:
-        SwedishPipeline(["pefselab/tests/sample.txt"]).save(output_dir)
+        SwedishPipeline(["tests/sample.txt"]).save(output_dir)
         with open(Path(output_dir).joinpath("sample.json"), "r") as f:
             lr: dict = json.load(f)
             del lr["path"]  # since the pathname k/v is not in the comparison file
