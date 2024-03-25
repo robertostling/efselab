@@ -10,6 +10,35 @@ import tempfile
 from pathlib import Path
 
 
+def pipeline_is_available() -> bool:
+    """checks whether the swedish pipeline is available"""
+    if not get_data_dir().joinpath("models").exists():
+        return False
+
+    all_modules: list[str] = [
+        x.name for x in get_data_dir().joinpath("models").iterdir()
+    ]
+    so_modules: list[str] = [
+        x.name.split(".")[0]
+        for x in get_data_dir().joinpath("models").iterdir()
+        if x.suffix in [".so", ".pyd"]
+    ]
+    required_modules: list[str] = [
+        "udt_suc_sv",
+        "suc_ne.PLATFORM.so",
+        "udt_suc_sv.PLATFORM.so",
+        "suc.PLATFORM.so",
+    ]
+    for rqm in required_modules:
+        if rqm.split(".")[-1] in ["so", "pyd"]:
+            if rqm.split(".")[0] not in so_modules:
+                return False
+        else:
+            if rqm not in all_modules:
+                return False
+    return True
+
+
 def build_pipeline():
     build_suc.build(skip_generate=True, n_train_fields=2)
     build_suc_ne.build(skip_generate=True)
@@ -42,7 +71,6 @@ def preprocessing_for_pipeline():
 
     with open(datadir.joinpath("swe-pipeline-ud2.tar.gz"), "rb") as archive:
         with tarfile.open(fileobj=archive, mode="r|gz") as file:
-            # file = tarfile.open(fileobj=archive, mode="r|gz")
             dl_path: Path = Path(tempfile.gettempdir()).joinpath("spipe")
             file.extractall(path=dl_path)
 

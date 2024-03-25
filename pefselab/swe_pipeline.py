@@ -26,14 +26,6 @@ Aaron Smith <aaron.smith@lingfil.uu.se>
 
 MAX_TOKEN = 256
 
-
-def pipeline_is_available() -> bool:
-    modeldir: Path = get_data_dir().joinpath("models")
-    if not modeldir.joinpath("pipeline_available").exists():
-        return False
-    return True
-
-
 @dataclass
 class ParseEntry:
     """dataclass for returning Stanza parse compatible list"""

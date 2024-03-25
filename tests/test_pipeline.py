@@ -1,11 +1,8 @@
 import json
 from pathlib import Path
 import tempfile
-from pefselab.swe_pipeline import SwedishPipeline, pipeline_is_available
+from pefselab.swe_pipeline import SwedishPipeline
 from pefselab.train_swe_pipeline import create_pipeline
-
-if not pipeline_is_available():
-    create_pipeline()
 
 
 def test_pipeline_process_file():
